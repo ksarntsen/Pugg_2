@@ -284,6 +284,13 @@ header p {
     transform: scale(1.1);
 }
 
+.exercise-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem auto;
+}
+
 .add-exercise-btn {
     background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
     color: white;
@@ -298,13 +305,34 @@ header p {
     transition: all 0.2s ease;
     font-size: 1.5rem;
     font-weight: 300;
-    margin: 1rem auto;
     box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
 }
 
 .add-exercise-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+
+.ai-exercise-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.ai-exercise-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 /* Share info styles */

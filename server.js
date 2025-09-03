@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -108,6 +109,37 @@ app.post('/api/generate-exercises', async (req, res) => {
     } catch (error) {
         console.error('Error generating exercises:', error);
         res.status(500).json({ error: 'Failed to generate exercises' });
+    }
+});
+
+// API route for generating additional exercises with AI using existing context
+app.post('/api/generate-ai-exercises', async (req, res) => {
+    try {
+        const { prompt, count, existingExercises, exerciseSetId } = req.body;
+        
+        if (!prompt || !count || !existingExercises) {
+            return res.status(400).json({ error: 'Prompt, count, and existing exercises are required' });
+        }
+
+        const newExercises = await generateAdditionalExercisesWithAI(prompt, count, existingExercises);
+        
+        // Update the exercise set in storage if exerciseSetId is provided
+        if (exerciseSetId) {
+            const exerciseSet = exerciseSets.find(set => set.id === exerciseSetId);
+            if (exerciseSet) {
+                // Add new exercises to existing ones
+                const newExerciseObjects = newExercises.map((exercise, index) => ({
+                    id: exerciseSet.exercises.length + index + 1,
+                    text: exercise.text
+                }));
+                exerciseSet.exercises.push(...newExerciseObjects);
+            }
+        }
+        
+        res.json({ exercises: newExercises });
+    } catch (error) {
+        console.error('Error generating additional exercises:', error);
+        res.status(500).json({ error: 'Failed to generate additional exercises' });
     }
 });
 
@@ -362,6 +394,53 @@ async function generateTitleWithAI(prompt) {
         return words.map(word => 
             word.charAt(0).toUpperCase() + word.slice(1)
         ).join(' ') + ' Exercises';
+    }
+}
+
+async function generateAdditionalExercisesWithAI(prompt, count, existingExercises) {
+    try {
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+                {
+                    role: "system",
+                    content: `You are an educational exercise generator. You will be given existing exercises as context and asked to generate ${count} additional exercises that match the same style, difficulty level, and educational approach.
+
+IMPORTANT CONTEXT - Here are the existing exercises:
+${existingExercises}
+
+Your task: Generate ${count} new exercises that:
+1. Match the same style and format as the existing exercises
+2. Are at the same difficulty level
+3. Cover similar or related topics
+4. Maintain consistency with the educational approach
+5. Are diverse and engaging
+
+Return only the new exercises, one per line, without numbering or additional formatting.`
+                },
+                {
+                    role: "user",
+                    content: `Generate ${count} additional exercises based on this request: ${prompt}
+
+Make sure the new exercises fit well with the existing ones and maintain the same quality and style.`
+                }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7
+        });
+
+        const exercisesText = completion.choices[0].message.content;
+        const exercises = exercisesText.split('\n')
+            .filter(line => line.trim())
+            .map((exercise, index) => ({
+                id: index + 1,
+                text: exercise.trim()
+            }));
+
+        return exercises;
+    } catch (error) {
+        console.error('OpenAI API error for additional exercises:', error);
+        throw new Error('Failed to generate additional exercises with AI');
     }
 }
 

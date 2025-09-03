@@ -54,7 +54,10 @@
                     <!-- Exercises will be dynamically added here -->
                 </div>
                 
-                <button id="addExercise" class="add-exercise-btn" style="display: none;">+</button>
+                <div class="exercise-buttons" style="display: none;">
+                    <button id="addExercise" class="add-exercise-btn">+</button>
+                    <button id="aiGenerateExercise" class="ai-exercise-btn">AI</button>
+                </div>
 
                 <div class="share-info" id="shareInfo" style="display: none;">
                     <h3>Share with Students</h3>
@@ -89,6 +92,31 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="modalCancel">Cancel</button>
                 <button class="btn btn-primary" id="modalSave">Save Instruction</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Exercise Generation Modal -->
+    <div id="aiGenerationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Generate More Exercises with AI</h3>
+                <button class="modal-close" id="aiModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="aiExerciseCount">Number of Exercises</label>
+                    <input type="number" id="aiExerciseCount" min="1" max="10" value="3" required>
+                </div>
+                <div class="form-group">
+                    <label for="aiExercisePrompt">Description for New Exercises</label>
+                    <textarea id="aiExercisePrompt" class="form-textarea" rows="4" placeholder="Describe what kind of additional exercises you want to generate..." required></textarea>
+                    <small class="form-help">The AI will use your existing exercises as context to generate new ones that fit the same style and difficulty level.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="aiModalCancel">Cancel</button>
+                <button class="btn btn-primary" id="aiModalGenerate">Generate Exercises</button>
             </div>
         </div>
     </div>

@@ -28,6 +28,11 @@ class ExerciseGenerator {
             this.addNewExercise();
         });
 
+        // AI generate exercise button
+        document.getElementById('aiGenerateExercise').addEventListener('click', () => {
+            this.openAIGenerationModal();
+        });
+
         // Copy buttons
         document.getElementById('copyLink').addEventListener('click', () => {
             this.copyToClipboard('studentLink');
@@ -59,6 +64,26 @@ class ExerciseGenerator {
         document.getElementById('instructionModal').addEventListener('click', (e) => {
             if (e.target.id === 'instructionModal') {
                 this.closeInstructionModal();
+            }
+        });
+
+        // AI modal event listeners
+        document.getElementById('aiModalClose').addEventListener('click', () => {
+            this.closeAIGenerationModal();
+        });
+
+        document.getElementById('aiModalCancel').addEventListener('click', () => {
+            this.closeAIGenerationModal();
+        });
+
+        document.getElementById('aiModalGenerate').addEventListener('click', () => {
+            this.generateAIExercises();
+        });
+
+        // Close AI modal when clicking outside
+        document.getElementById('aiGenerationModal').addEventListener('click', (e) => {
+            if (e.target.id === 'aiGenerationModal') {
+                this.closeAIGenerationModal();
             }
         });
     }
@@ -130,8 +155,8 @@ class ExerciseGenerator {
         // Display exercises
         this.refreshExerciseDisplay();
 
-        // Show add exercise button
-        document.getElementById('addExercise').style.display = 'block';
+        // Show exercise buttons
+        document.querySelector('.exercise-buttons').style.display = 'flex';
         
         // Show edit chat instruction button
         document.getElementById('editChatInstruction').style.display = 'block';
@@ -472,6 +497,88 @@ class ExerciseGenerator {
 
     showErrorMessage(message) {
         this.showMessage(message, 'error');
+    }
+
+    openAIGenerationModal() {
+        const modal = document.getElementById('aiGenerationModal');
+        modal.style.display = 'flex';
+        
+        // Focus on the prompt textarea
+        const promptTextarea = document.getElementById('aiExercisePrompt');
+        promptTextarea.focus();
+    }
+
+    closeAIGenerationModal() {
+        const modal = document.getElementById('aiGenerationModal');
+        modal.style.display = 'none';
+        
+        // Clear the form
+        document.getElementById('aiExerciseCount').value = '3';
+        document.getElementById('aiExercisePrompt').value = '';
+    }
+
+    async generateAIExercises() {
+        const count = parseInt(document.getElementById('aiExerciseCount').value);
+        const prompt = document.getElementById('aiExercisePrompt').value;
+
+        if (!prompt.trim()) {
+            alert('Please enter a description for the new exercises.');
+            return;
+        }
+
+        if (!this.exercises || this.exercises.length === 0) {
+            alert('No existing exercises found to use as context.');
+            return;
+        }
+
+        // Show loading state
+        const generateBtn = document.getElementById('aiModalGenerate');
+        const originalText = generateBtn.textContent;
+        generateBtn.innerHTML = '<span class="loading"></span> Generating...';
+        generateBtn.disabled = true;
+
+        try {
+            // Prepare existing exercises as context
+            const existingExercises = this.exercises.map(ex => ex.text).join('\n');
+            
+            // Call the AI API endpoint with existing exercises as context
+            const response = await fetch('/api/generate-ai-exercises', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    count: count,
+                    existingExercises: existingExercises,
+                    exerciseSetId: this.exerciseId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Add new exercises to existing ones
+            const newExercises = data.exercises.map((exercise, index) => ({
+                id: this.exercises.length + index + 1,
+                text: exercise.text
+            }));
+            
+            this.exercises.push(...newExercises);
+            this.refreshExerciseDisplay();
+            this.closeAIGenerationModal();
+            this.showSuccessMessage(`Successfully generated ${newExercises.length} new exercises!`);
+
+        } catch (error) {
+            console.error('Error generating AI exercises:', error);
+            alert('Error generating exercises. Please try again.');
+        } finally {
+            generateBtn.textContent = originalText;
+            generateBtn.disabled = false;
+        }
     }
 }
 
