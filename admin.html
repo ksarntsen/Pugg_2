@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Exercise Generator</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Admin Login</h1>
+                    <p>Access the admin panel</p>
+                </div>
+                <div class="header-actions">
+                    <a href="/" class="btn btn-outline btn-small">← Back to Generator</a>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="login-section">
+                <div class="login-container">
+                    <h2>Admin Authentication</h2>
+                    <form id="adminLoginForm">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </form>
+                    <div id="loginError" class="error-message" style="display: none;"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Exercise Generator</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Admin Dashboard</h1>
+                    <p>Manage exercise sets and system settings</p>
+                </div>
+                <div class="header-actions">
+                    <a href="/" class="btn btn-outline btn-small">← Back to Generator</a>
+                    <button id="logoutBtn" class="btn btn-secondary btn-small">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- System Settings -->
+            <div class="admin-section">
+                <h2>System Settings</h2>
+                <div class="settings-container">
+                    <div class="form-group">
+                        <label for="llmModel">Teacher Generation Model</label>
+                        <select id="llmModel" class="form-select">
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="defaultChatInstruction">Default Chat Instruction</label>
+                        <textarea id="defaultChatInstruction" class="form-textarea" placeholder="Enter the default instruction for AI chat assistants..."></textarea>
+                    </div>
+                    <button id="saveSettings" class="btn btn-primary">Save Settings</button>
+                </div>
+            </div>
+
+            <!-- Exercise Sets Overview -->
+            <div class="admin-section">
+                <h2>Exercise Sets Overview</h2>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Created By (IP)</th>
+                                <th>Created</th>
+                                <th>Last Used</th>
+                                <th>Chat Model</th>
+                                <th>Chat Instruction</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exerciseSetsTable">
+                            <tr>
+                                <td colspan="8" class="loading-row">
+                                    <div class="loading"></div>
+                                    Loading exercise sets...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chat Instruction Modal -->
+    <div id="instructionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Chat Instruction</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="instructionText">Chat Instruction for this Exercise Set</label>
+                    <textarea id="instructionText" class="form-textarea" rows="6" placeholder="Enter custom instruction for the AI chat assistant..."></textarea>
+                    <small class="form-help">This instruction will be used when students chat with the AI assistant for this exercise set.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn btn-primary" id="modalSave">Save Instruction</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin-dashboard.js"></script>
+</body>
+</html>

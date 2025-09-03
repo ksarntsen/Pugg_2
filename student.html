@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Set</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="student-page">
+    <div class="student-container">
+        <div class="exercise-display" id="exerciseDisplay">
+            <div class="title-section" id="titleSection">
+                <h1 id="exerciseTitle">Loading...</h1>
+                <button id="showExercises" class="btn btn-primary">See exercises</button>
+            </div>
+            
+            <div class="exercise-view" id="exerciseView" style="display: none;">
+                <div class="exercise-content">
+                    <div class="exercise-number" id="exerciseNumber">1</div>
+                    <div class="exercise-text" id="exerciseText">Loading exercise...</div>
+                </div>
+                
+                <div class="navigation">
+                    <button id="prevExercise" class="nav-btn prev" disabled>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15,18 9,12 15,6"></polyline>
+                        </svg>
+                    </button>
+                    <button id="nextExercise" class="nav-btn next">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container" id="progressContainer" style="display: none;">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">Exercise 1 of 5</div>
+    </div>
+
+    <!-- AI Chat Assistant -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-bubble" id="chatBubble">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </div>
+        
+        <div class="chat-window" id="chatWindow" style="display: none;">
+            <div class="chat-header">
+                <h3>AI Assistant</h3>
+                <button class="chat-close" id="chatClose">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added here -->
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" placeholder="Ask me anything about this exercise..." maxlength="500">
+                <button id="chatSend" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="student.js"></script>
+</body>
+</html>

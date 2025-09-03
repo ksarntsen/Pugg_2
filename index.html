@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Generator - Teacher</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Exercise Generator</h1>
+                    <p>Create and share exercises with your students</p>
+                </div>
+                <div class="header-actions">
+                    <a href="/admin" class="btn btn-outline btn-small">Admin</a>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Exercise Generation Form -->
+            <div class="generation-section" id="generationSection">
+                <div class="form-container">
+                    <h2>Generate New Exercises</h2>
+                    <form id="exerciseForm">
+                        <div class="form-group">
+                            <label for="exerciseCount">Number of Exercises</label>
+                            <input type="number" id="exerciseCount" min="1" max="20" value="5" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="exercisePrompt">Exercise Description</label>
+                            <textarea id="exercisePrompt" placeholder="Describe what kind of exercises you want to generate..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate Exercises</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Exercise Display Section -->
+            <div class="exercise-section" id="exerciseSection" style="display: none;">
+                <div class="exercise-header">
+                    <input type="text" id="exerciseTitle" class="title-input" placeholder="Exercise Set Title">
+                    <div class="header-actions">
+                        <button id="editChatInstruction" class="btn btn-outline btn-small" style="display: none;">Edit Chat Instruction</button>
+                        <button id="downloadPdf" class="btn btn-secondary">Download PDF</button>
+                    </div>
+                </div>
+
+                <div class="exercise-list" id="exerciseList">
+                    <!-- Exercises will be dynamically added here -->
+                </div>
+                
+                <button id="addExercise" class="add-exercise-btn" style="display: none;">+</button>
+
+                <div class="share-info" id="shareInfo" style="display: none;">
+                    <h3>Share with Students</h3>
+                    <div class="share-link-container">
+                        <input type="text" id="studentLink" readonly>
+                        <button id="copyLink" class="btn btn-small">Copy</button>
+                    </div>
+                    <div class="teacher-link-container">
+                        <p>Teacher link (to return to this exercise set):</p>
+                        <input type="text" id="teacherLink" readonly>
+                        <button id="copyTeacherLink" class="btn btn-small">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chat Instruction Modal -->
+    <div id="instructionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Chat Instruction</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="instructionText">Chat Instruction for this Exercise Set</label>
+                    <textarea id="instructionText" class="form-textarea" rows="6" placeholder="Enter custom instruction for the AI chat assistant..."></textarea>
+                    <small class="form-help">This instruction will be used when students chat with the AI assistant for this exercise set.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn btn-primary" id="modalSave">Save Instruction</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
