@@ -113,6 +113,9 @@ class StudentExerciseViewer {
         document.getElementById('exerciseView').style.display = 'flex';
         document.getElementById('progressContainer').style.display = 'block';
 
+        // Show chat bubble
+        document.getElementById('chatContainer').style.display = 'block';
+
         // Show first exercise
         this.currentExerciseIndex = 0;
         this.displayCurrentExercise();

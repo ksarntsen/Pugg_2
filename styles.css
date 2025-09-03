@@ -536,28 +536,29 @@ header p {
 /* Chat Assistant Styles */
 .chat-container {
     position: fixed;
-    bottom: 20px;
+    bottom: 80px;
     right: 20px;
     z-index: 1000;
+    display: none;
 }
 
 .chat-bubble {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #FFC700 0%, #FF9F1A 100%);
+    background: linear-gradient(135deg, #FFE566 0%, #FFC700 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(255, 199, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(255, 229, 102, 0.4);
     transition: all 0.3s ease;
     color: #2E2E2E;
 }
 
 .chat-bubble:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 25px rgba(255, 199, 0, 0.6);
+    box-shadow: 0 6px 25px rgba(255, 229, 102, 0.6);
 }
 
 .chat-window {
