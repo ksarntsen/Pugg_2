@@ -121,7 +121,10 @@ class StudentExerciseViewer {
         const exercise = this.exercises[this.currentExerciseIndex];
         
         document.getElementById('exerciseNumber').textContent = this.currentExerciseIndex + 1;
-        document.getElementById('exerciseText').textContent = exercise.text;
+        
+        // Use innerHTML to allow HTML content and mathematical expressions
+        const exerciseTextElement = document.getElementById('exerciseText');
+        exerciseTextElement.innerHTML = this.escapeHtml(exercise.text);
 
         // Update navigation buttons
         const prevBtn = document.getElementById('prevExercise');
@@ -141,10 +144,25 @@ class StudentExerciseViewer {
         setTimeout(() => {
             exerciseContent.style.opacity = '1';
             exerciseContent.style.transform = 'translateY(0)';
+            
+            // Render mathematical expressions with MathJax
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([exerciseTextElement]).catch((err) => {
+                    console.error('MathJax rendering error:', err);
+                });
+            }
         }, 100);
     }
 
-
+    escapeHtml(text) {
+        // Escape HTML characters but preserve mathematical expressions
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
 
     updateProgressBar() {
         const progressFill = document.getElementById('progressFill');
@@ -275,10 +293,17 @@ class StudentExerciseViewer {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${type}`;
         messageDiv.id = messageId;
-        messageDiv.textContent = text;
+        messageDiv.innerHTML = this.escapeHtml(text);
         
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // Render mathematical expressions with MathJax
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise([messageDiv]).catch((err) => {
+                console.error('MathJax rendering error in chat:', err);
+            });
+        }
         
         return messageId;
     }

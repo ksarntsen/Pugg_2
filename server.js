@@ -35,6 +35,13 @@ let systemSettings = {
 - Keep responses concise and age-appropriate
 - If the student asks for the direct answer, guide them to think through it step by step instead
 
+IMPORTANT: When discussing mathematical expressions, formulas, or symbols:
+- Use proper mathematical notation and LaTeX formatting when appropriate
+- For inline math expressions, use single dollar signs: $x^2 + 3x - 4 = 0$
+- For display math expressions, use double dollar signs: $$\\frac{a}{b} = \\frac{c}{d}$$
+- Use proper mathematical symbols: π, ∑, ∫, √, ±, ≤, ≥, ≠, ∞, etc.
+- When explaining mathematical concepts, be precise with notation and terminology
+
 Respond naturally and helpfully to the student's question.`
 };
 
@@ -44,7 +51,7 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://polyfill.io", "https://cdn.jsdelivr.net"],
             imgSrc: ["'self'", "data:", "https:"],
             connectSrc: ["'self'"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -342,7 +349,15 @@ async function generateExercisesWithAI(prompt, count) {
             messages: [
                 {
                     role: "system",
-                    content: `You are an educational exercise generator. Create ${count} diverse, engaging exercises based on the teacher's prompt. Each exercise should be clear, age-appropriate, and educational. Return only the exercises, one per line, without numbering or additional formatting.`
+                    content: `You are an educational exercise generator. Create ${count} diverse, engaging exercises based on the teacher's prompt. Each exercise should be clear, age-appropriate, and educational.
+
+IMPORTANT: When creating mathematical exercises:
+- Use proper mathematical notation and symbols (π, ∑, ∫, √, ±, ≤, ≥, ≠, ∞, etc.)
+- For mathematical expressions, use LaTeX formatting with single dollar signs for inline math: $x^2 + 3x - 4 = 0$
+- For display math, use double dollar signs: $$\\frac{a}{b} = \\frac{c}{d}$$
+- Ensure mathematical symbols render correctly in web browsers
+
+Return only the exercises, one per line, without numbering or additional formatting.`
                 },
                 {
                     role: "user",
@@ -415,6 +430,12 @@ Your task: Generate ${count} new exercises that:
 3. Cover similar or related topics
 4. Maintain consistency with the educational approach
 5. Are diverse and engaging
+
+IMPORTANT: When creating mathematical exercises:
+- Use proper mathematical notation and symbols (π, ∑, ∫, √, ±, ≤, ≥, ≠, ∞, etc.)
+- For mathematical expressions, use LaTeX formatting with single dollar signs for inline math: $x^2 + 3x - 4 = 0$
+- For display math, use double dollar signs: $$\\frac{a}{b} = \\frac{c}{d}$$
+- Ensure mathematical symbols render correctly in web browsers
 
 Return only the new exercises, one per line, without numbering or additional formatting.`
                 },
