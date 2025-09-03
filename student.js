@@ -4,8 +4,8 @@ class StudentExerciseViewer {
         this.exercises = [];
         this.currentExerciseIndex = 0;
         this.exerciseId = null;
+        this.exerciseSetTitle = null;
         this.chatHistory = [];
-        this.lastExerciseIndex = -1;
         this.init();
     }
 
@@ -78,6 +78,7 @@ class StudentExerciseViewer {
             if (savedData) {
                 const data = JSON.parse(savedData);
                 this.exercises = data.exercises;
+                this.exerciseSetTitle = data.title;
                 document.getElementById('exerciseTitle').textContent = data.title;
                 this.trackAccess();
             } else {
@@ -267,20 +268,19 @@ class StudentExerciseViewer {
         input.value = '';
         document.getElementById('chatSend').disabled = true;
 
-        // Add user message to chat
+        // Add user message to chat (display only the user's message)
         this.addMessage(message, 'user');
 
-        // Always include exercise content for the first message, or when exercise changes
-        const exerciseContent = (this.chatHistory.length === 0 || this.lastExerciseIndex !== this.currentExerciseIndex) ? 
-            this.exercises[this.currentExerciseIndex]?.text : null;
+        // Always get the current exercise content
+        const currentExercise = this.exercises[this.currentExerciseIndex]?.text || 'No exercise available';
         
-        this.lastExerciseIndex = this.currentExerciseIndex;
+        // Format the message for the AI with all context
+        const formattedMessage = `Exercise set title: ${this.exerciseSetTitle || 'Unknown'}, exercise: ${currentExercise}, student message: ${message}`;
         
         // Debug logging
-        console.log('Sending message:', message);
-        console.log('Exercise content:', exerciseContent);
+        console.log('Sending formatted message:', formattedMessage);
         console.log('Current exercise index:', this.currentExerciseIndex);
-        console.log('Last exercise index:', this.lastExerciseIndex);
+        console.log('Chat history length:', this.chatHistory.length);
 
         // Show typing indicator
         const typingId = this.addMessage('Thinking...', 'typing');
@@ -292,8 +292,7 @@ class StudentExerciseViewer {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    message: message,
-                    exerciseContent: exerciseContent,
+                    message: formattedMessage,
                     chatHistory: this.chatHistory,
                     exerciseSetId: this.exerciseId
                 })
@@ -311,9 +310,9 @@ class StudentExerciseViewer {
             // Add AI response
             this.addMessage(data.response, 'assistant');
             
-            // Update chat history
+            // Update chat history with the formatted message and AI response
             this.chatHistory.push(
-                { role: 'user', content: message },
+                { role: 'user', content: formattedMessage },
                 { role: 'assistant', content: data.response }
             );
 

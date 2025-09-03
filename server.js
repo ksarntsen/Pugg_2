@@ -153,11 +153,10 @@ app.post('/api/generate-ai-exercises', async (req, res) => {
 // API route for AI chat assistant
 app.post('/api/chat', async (req, res) => {
     try {
-        const { message, exerciseContent, chatHistory, exerciseSetId } = req.body;
+        const { message, chatHistory, exerciseSetId } = req.body;
         
         console.log('Chat API received:');
         console.log('Message:', message);
-        console.log('Exercise content:', exerciseContent);
         console.log('Chat history length:', chatHistory ? chatHistory.length : 0);
         console.log('Exercise set ID:', exerciseSetId);
         
@@ -181,7 +180,7 @@ app.post('/api/chat', async (req, res) => {
             }
         }
 
-        const response = await generateChatResponse(message, exerciseContent, chatHistory, chatModel, chatInstruction);
+        const response = await generateChatResponse(message, chatHistory, chatModel, chatInstruction);
         res.json({ response });
     } catch (error) {
         console.error('Error generating chat response:', error);
@@ -465,20 +464,12 @@ Make sure the new exercises fit well with the existing ones and maintain the sam
     }
 }
 
-async function generateChatResponse(message, exerciseContent, chatHistory, chatModel = systemSettings.llmModel, chatInstruction = systemSettings.defaultChatInstruction) {
+async function generateChatResponse(message, chatHistory, chatModel = systemSettings.llmModel, chatInstruction = systemSettings.defaultChatInstruction) {
     try {
-        let systemPrompt = chatInstruction;
-        
-        if (exerciseContent) {
-            systemPrompt += `\n\nIMPORTANT: The student is currently working on this exercise: "${exerciseContent}"\n\nUse this exercise context to provide relevant help. If the student asks about "the exercise" or "this problem", they are referring to the exercise above.`;
-        } else {
-            systemPrompt += `\n\nNote: No specific exercise context is available at the moment.`;
-        }
-
         const messages = [
             {
                 role: "system",
-                content: systemPrompt
+                content: chatInstruction
             }
         ];
 
@@ -487,14 +478,14 @@ async function generateChatResponse(message, exerciseContent, chatHistory, chatM
             messages.push(...chatHistory);
         }
 
-        // Add the current message
+        // Add the current message (already formatted with context)
         messages.push({
             role: "user",
             content: message
         });
 
         const completion = await openai.chat.completions.create({
-            model: systemSettings.llmModel,
+            model: chatModel,
             messages: messages,
             max_tokens: 300,
             temperature: 0.7

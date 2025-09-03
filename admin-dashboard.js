@@ -176,6 +176,10 @@ class AdminDashboard {
                         <option value="gpt-3.5-turbo" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-3.5-turbo' ? 'selected' : ''}>GPT-3.5</option>
                         <option value="gpt-4" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-4' ? 'selected' : ''}>GPT-4</option>
                         <option value="gpt-4-turbo" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-4-turbo' ? 'selected' : ''}>GPT-4 Turbo</option>
+                        <option value="gpt-5" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-5' ? 'selected' : ''}>GPT-5</option>
+                        <option value="gpt-5-mini" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-5-mini' ? 'selected' : ''}>GPT-5 Mini</option>
+                        <option value="gpt-5-nano" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-5-nano' ? 'selected' : ''}>GPT-5 Nano</option>
+                        <option value="gpt-5-chat-latest" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-5-chat-latest' ? 'selected' : ''}>GPT-5 Chat Latest</option>
                     </select>
                 </td>
                 <td>
@@ -290,10 +294,6 @@ class AdminDashboard {
     }
 
     async deleteExerciseSet(id) {
-        if (!confirm('Are you sure you want to delete this exercise set? This action cannot be undone.')) {
-            return;
-        }
-
         try {
             const response = await fetch(`/api/admin/exercise-sets/${id}`, {
                 method: 'DELETE',
