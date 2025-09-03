@@ -156,12 +156,54 @@ class StudentExerciseViewer {
 
     escapeHtml(text) {
         // Escape HTML characters but preserve mathematical expressions
-        return text
+        // First, temporarily replace LaTeX expressions with placeholders
+        const mathPlaceholders = [];
+        let processedText = text;
+        
+        // Handle inline math expressions \(...\)
+        processedText = processedText.replace(/\\([^)]+)\\)/g, (match, content) => {
+            const placeholder = `__MATH_INLINE_${mathPlaceholders.length}__`;
+            mathPlaceholders.push(`\\(${content}\\)`);
+            return placeholder;
+        });
+        
+        // Handle display math expressions \[...\]
+        processedText = processedText.replace(/\\\[([^\]]+)\\\]/g, (match, content) => {
+            const placeholder = `__MATH_DISPLAY_${mathPlaceholders.length}__`;
+            mathPlaceholders.push(`\\[${content}\\]`);
+            return placeholder;
+        });
+        
+        // Handle dollar sign math expressions $...$ and $$...$$
+        processedText = processedText.replace(/\$\$([^$]+)\$\$/g, (match, content) => {
+            const placeholder = `__MATH_DISPLAY_${mathPlaceholders.length}__`;
+            mathPlaceholders.push(`$$${content}$$`);
+            return placeholder;
+        });
+        
+        processedText = processedText.replace(/\$([^$]+)\$/g, (match, content) => {
+            const placeholder = `__MATH_INLINE_${mathPlaceholders.length}__`;
+            mathPlaceholders.push(`$${content}$`);
+            return placeholder;
+        });
+        
+        // Now escape HTML characters
+        processedText = processedText
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+        
+        // Restore the mathematical expressions
+        mathPlaceholders.forEach((expression, index) => {
+            const placeholder = expression.includes('$$') ? 
+                `__MATH_DISPLAY_${index}__` : 
+                `__MATH_INLINE_${index}__`;
+            processedText = processedText.replace(placeholder, expression);
+        });
+        
+        return processedText;
     }
 
     updateProgressBar() {
