@@ -438,12 +438,15 @@ header p {
     margin-bottom: 2rem;
 }
 
-.exercise-text {
+.student-page .exercise-text {
     font-size: 1.25rem;
     line-height: 1.6;
     color: #2d3748;
     max-width: 500px;
     text-align: center;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
 }
 
 
