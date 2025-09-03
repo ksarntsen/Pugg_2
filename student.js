@@ -161,7 +161,7 @@ class StudentExerciseViewer {
         let processedText = text;
         
         // Handle inline math expressions \(...\)
-        processedText = processedText.replace(/\\([^)]+)\\)/g, (match, content) => {
+        processedText = processedText.replace(/\\\(([^)]+)\\\)/g, (match, content) => {
             const placeholder = `__MATH_INLINE_${mathPlaceholders.length}__`;
             mathPlaceholders.push(`\\(${content}\\)`);
             return placeholder;
