@@ -1,0 +1,15 @@
+#FFC700 — primary yellow
+
+#FFE566 — highlight yellow
+
+#FF9F1A — warm orange accent
+
+#2E2E2E — deep charcoal (text/shadow)
+
+#6B7280 — neutral gray (UI chrome)
+
+#FFF7DF — soft cream (background)
+
+#10B981 — mint/teal accent
+
+#2563EB — crisp blue accent

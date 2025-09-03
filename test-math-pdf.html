@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Math PDF Generation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .math-example {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+    <!-- MathJax for mathematical expression rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <h1>Test Math PDF Generation</h1>
+    
+    <div class="test-section">
+        <h2>Test Exercises with LaTeX</h2>
+        <p>Click the button below to generate a PDF with various LaTeX expressions to test the improved rendering:</p>
+        
+        <button onclick="generateTestPDF()">Generate Test PDF</button>
+        
+        <div class="math-example">
+            <h3>Sample Exercise 1: Quadratic Formula</h3>
+            <p>Solve the quadratic equation $ax^2 + bx + c = 0$ using the quadratic formula:</p>
+            <p>$$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$</p>
+        </div>
+        
+        <div class="math-example">
+            <h3>Sample Exercise 2: Calculus</h3>
+            <p>Find the derivative of $f(x) = x^3 + 2x^2 - 5x + 1$.</p>
+            <p>The derivative is: $f'(x) = 3x^2 + 4x - 5$</p>
+        </div>
+        
+        <div class="math-example">
+            <h3>Sample Exercise 3: Trigonometry</h3>
+            <p>Evaluate $\sin(\frac{\pi}{4}) + \cos(\frac{\pi}{4})$.</p>
+            <p>Using the unit circle: $\sin(\frac{\pi}{4}) = \cos(\frac{\pi}{4}) = \frac{\sqrt{2}}{2}$</p>
+            <p>Therefore: $\sin(\frac{\pi}{4}) + \cos(\frac{\pi}{4}) = \frac{\sqrt{2}}{2} + \frac{\sqrt{2}}{2} = \sqrt{2}$</p>
+        </div>
+    </div>
+
+    <script>
+        async function generateTestPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Test exercises with various LaTeX expressions
+            const testExercises = [
+                {
+                    text: "Solve the quadratic equation $ax^2 + bx + c = 0$ using the quadratic formula: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$"
+                },
+                {
+                    text: "Find the derivative of $f(x) = x^3 + 2x^2 - 5x + 1$. The derivative is: $f'(x) = 3x^2 + 4x - 5$"
+                },
+                {
+                    text: "Evaluate $\\sin(\\frac{\\pi}{4}) + \\cos(\\frac{\\pi}{4})$. Using the unit circle: $\\sin(\\frac{\\pi}{4}) = \\cos(\\frac{\\pi}{4}) = \\frac{\\sqrt{2}}{2}$ Therefore: $\\sin(\\frac{\\pi}{4}) + \\cos(\\frac{\\pi}{4}) = \\frac{\\sqrt{2}}{2} + \\frac{\\sqrt{2}}{2} = \\sqrt{2}$"
+                },
+                {
+                    text: "Prove that $\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1$ using L'Hôpital's rule."
+                },
+                {
+                    text: "Calculate the integral $\\int_0^1 x^2 dx$. The result is: $$\\int_0^1 x^2 dx = \\left[\\frac{x^3}{3}\\right]_0^1 = \\frac{1}{3}$$"
+                }
+            ];
+
+            // Set up PDF properties
+            doc.setProperties({
+                title: 'Test Math PDF Generation',
+                subject: 'LaTeX Math Rendering Test',
+                author: 'Exercise Generator',
+                creator: 'Exercise Generator'
+            });
+
+            // Add title
+            doc.setFontSize(24);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(40, 40, 40);
+            doc.text('Test Math PDF Generation', 20, 40);
+
+            // Add a line under the title
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.line(20, 45, 190, 45);
+
+            // Process exercises
+            let yPosition = 65;
+            const pageWidth = 170;
+            const leftMargin = 20;
+
+            for (let index = 0; index < testExercises.length; index++) {
+                const exercise = testExercises[index];
+                
+                // Check if we need a new page
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 30;
+                }
+
+                // Exercise number
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.setTextColor(80, 80, 80);
+                doc.text(`${index + 1}.`, leftMargin, yPosition);
+                
+                // Process exercise text for math expressions
+                const processedText = await processMathExpressions(exercise.text);
+                
+                // Add exercise text with improved inline math support
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(11);
+                doc.setTextColor(40, 40, 40);
+                
+                // Split text into lines and handle math expressions inline
+                const textLines = doc.splitTextToSize(processedText.text, pageWidth);
+                let currentY = yPosition;
+                
+                // Process each line and add math expressions inline
+                for (let lineIndex = 0; lineIndex < textLines.length; lineIndex++) {
+                    const line = textLines[lineIndex];
+                    const lineWidth = doc.getTextWidth(line);
+                    
+                    // Add the text line
+                    doc.text(line, leftMargin + 15, currentY);
+                    
+                    // Check if we have math images that should be positioned inline with this line
+                    const inlineMathImages = processedText.mathImages.filter(img => img.type === 'inline');
+                    
+                    if (inlineMathImages.length > 0 && lineIndex === 0) {
+                        // For the first line, try to position inline math expressions
+                        let currentX = leftMargin + 15 + lineWidth + 2; // Start after the text
+                        
+                        for (const mathImage of inlineMathImages) {
+                            // Check if there's enough space on the current line
+                            if (currentX + mathImage.width < leftMargin + 15 + pageWidth) {
+                                try {
+                                    // Position the math image inline with the text baseline
+                                    const baselineOffset = 2; // Slight adjustment for better alignment
+                                    doc.addImage(mathImage.dataUrl, 'PNG', currentX, currentY - mathImage.height + baselineOffset, mathImage.width, mathImage.height);
+                                    currentX += mathImage.width + 3; // Space after the math expression
+                                } catch (error) {
+                                    console.warn('Failed to add inline math image to PDF:', error);
+                                }
+                            }
+                        }
+                    }
+                    
+                    currentY += 5; // Line height
+                }
+                
+                // Add display math expressions (centered, on new lines)
+                const displayMathImages = processedText.mathImages.filter(img => img.type === 'display');
+                for (const mathImage of displayMathImages) {
+                    // Check if we need a new page
+                    if (currentY + mathImage.height > 280) {
+                        doc.addPage();
+                        currentY = 30;
+                    }
+                    
+                    try {
+                        // Center the display math
+                        const centerX = (doc.internal.pageSize.width - mathImage.width) / 2;
+                        doc.addImage(mathImage.dataUrl, 'PNG', centerX, currentY, mathImage.width, mathImage.height);
+                        currentY += mathImage.height + 5; // Space after display math
+                    } catch (error) {
+                        console.warn('Failed to add display math image to PDF:', error);
+                    }
+                }
+                
+                yPosition = currentY + 15; // Space between exercises
+            }
+
+            // Download the PDF
+            doc.save('test-math-pdf.pdf');
+        }
+
+        // Copy the math processing functions from the main script
+        async function processMathExpressions(text) {
+            const mathPlaceholders = [];
+            let processedText = text;
+            const mathImages = [];
+            
+            // Handle different math expression formats
+            const mathPatterns = [
+                { pattern: /\$\$([^$]+)\$\$/g, type: 'display' },
+                { pattern: /\$([^$]+)\$/g, type: 'inline' },
+                { pattern: /\\\[([^\]]+)\\\]/g, type: 'display' },
+                { pattern: /\\\(([^)]+)\\\)/g, type: 'inline' }
+            ];
+            
+            // First pass: find all math expressions and replace with placeholders
+            for (const { pattern, type } of mathPatterns) {
+                processedText = processedText.replace(pattern, (match, content) => {
+                    const placeholder = `__MATH_${type.toUpperCase()}_${mathPlaceholders.length}__`;
+                    mathPlaceholders.push({ latex: content, type, original: match });
+                    return placeholder;
+                });
+            }
+            
+            // Process each math expression
+            for (const mathItem of mathPlaceholders) {
+                try {
+                    const svg = await convertLatexToSvg(mathItem.latex, mathItem.type);
+                    if (svg) {
+                        const imageResult = await svgToImageData(svg);
+                        if (imageResult && imageResult.dataUrl) {
+                            // For inline math, use smaller dimensions to better match text height
+                            let pdfWidth = imageResult.width;
+                            let pdfHeight = imageResult.height;
+                            
+                            if (mathItem.type === 'inline') {
+                                // Scale down inline math to better match text height (11pt font)
+                                const textHeight = 8; // Approximate height for 11pt font in PDF
+                                if (pdfHeight > textHeight) {
+                                    const scale = textHeight / pdfHeight;
+                                    pdfWidth = Math.round(pdfWidth * scale);
+                                    pdfHeight = Math.round(pdfHeight * scale);
+                                }
+                            }
+                            
+                            mathImages.push({
+                                dataUrl: imageResult.dataUrl,
+                                width: pdfWidth,
+                                height: pdfHeight,
+                                latex: mathItem.latex,
+                                type: mathItem.type,
+                                originalWidth: imageResult.width,
+                                originalHeight: imageResult.height
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Failed to process math expression:', mathItem.latex, error);
+                }
+            }
+            
+            // Replace placeholders with empty string if we have images, otherwise with text
+            mathPlaceholders.forEach((mathItem, index) => {
+                const placeholder = `__MATH_${mathItem.type.toUpperCase()}_${index}__`;
+                // Only add placeholder text if we don't have a corresponding image
+                const hasImage = mathImages.some(img => img.latex === mathItem.latex);
+                if (hasImage) {
+                    processedText = processedText.replace(placeholder, '');
+                } else {
+                    processedText = processedText.replace(placeholder, `[Math Expression ${index + 1}]`);
+                }
+            });
+            
+            return { text: processedText, mathImages };
+        }
+
+        async function convertLatexToSvg(latex, type) {
+            return new Promise((resolve) => {
+                try {
+                    const mathJax = window.MathJax;
+                    if (!mathJax) {
+                        resolve(null);
+                        return;
+                    }
+                    
+                    mathJax.startup.promise.then(() => {
+                        try {
+                            const options = {
+                                display: type === 'display',
+                                em: type === 'inline' ? 6 : 12, // Smaller for inline, larger for display
+                                ex: type === 'inline' ? 3 : 6,  // Proportional to em
+                                containerWidth: type === 'inline' ? 60 : 120 // Smaller width for inline math
+                            };
+                            
+                            if (mathJax.tex2svg) {
+                                const node = mathJax.tex2svg(latex, options);
+                                const svg = node.querySelector('svg');
+                                if (svg) {
+                                    const svgClone = svg.cloneNode(true);
+                                    
+                                    const viewBox = svgClone.getAttribute('viewBox');
+                                    if (viewBox) {
+                                        const [, , width, height] = viewBox.split(' ').map(Number);
+                                        const maxWidth = type === 'inline' ? 50 : 100;
+                                        const maxHeight = type === 'inline' ? 8 : 20;
+                                        const scaleX = maxWidth / width;
+                                        const scaleY = maxHeight / height;
+                                        const scale = Math.min(scaleX, scaleY, 1);
+                                        
+                                        const finalWidth = Math.round(width * scale);
+                                        const finalHeight = Math.round(height * scale);
+                                        
+                                        svgClone.setAttribute('width', finalWidth);
+                                        svgClone.setAttribute('height', finalHeight);
+                                        svgClone.removeAttribute('style');
+                                    } else {
+                                        svgClone.setAttribute('width', type === 'inline' ? '40' : '80');
+                                        svgClone.setAttribute('height', type === 'inline' ? '6' : '15');
+                                    }
+                                    
+                                    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                                    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                                    resolve(svgClone.outerHTML);
+                                    return;
+                                }
+                            }
+                            
+                            resolve(null);
+                        } catch (error) {
+                            console.warn('MathJax conversion failed:', error);
+                            resolve(null);
+                        }
+                    }).catch((error) => {
+                        console.warn('MathJax startup failed:', error);
+                        resolve(null);
+                    });
+                } catch (error) {
+                    console.warn('Error in convertLatexToSvg:', error);
+                    resolve(null);
+                }
+            });
+        }
+
+        async function svgToImageData(svgString) {
+            return new Promise((resolve) => {
+                try {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.style.position = 'absolute';
+                    tempDiv.style.left = '-9999px';
+                    tempDiv.style.top = '-9999px';
+                    tempDiv.style.visibility = 'hidden';
+                    tempDiv.style.width = '200px';
+                    tempDiv.style.height = '100px';
+                    tempDiv.innerHTML = svgString;
+                    document.body.appendChild(tempDiv);
+                    
+                    const svg = tempDiv.querySelector('svg');
+                    if (!svg) {
+                        document.body.removeChild(tempDiv);
+                        resolve(null);
+                        return;
+                    }
+                    
+                    setTimeout(() => {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            
+                            const viewBox = svg.getAttribute('viewBox');
+                            let width, height;
+                            
+                            if (viewBox) {
+                                const [, , vbWidth, vbHeight] = viewBox.split(' ').map(Number);
+                                const targetHeight = 8;
+                                const maxWidth = 60;
+                                
+                                const scaleFromHeight = targetHeight / vbHeight;
+                                const scaleFromWidth = maxWidth / vbWidth;
+                                const scale = Math.min(scaleFromHeight, scaleFromWidth, 1.5);
+                                
+                                width = Math.round(vbWidth * scale);
+                                height = Math.round(vbHeight * scale);
+                            } else {
+                                width = parseInt(svg.getAttribute('width')) || 50;
+                                height = parseInt(svg.getAttribute('height')) || 8;
+                            }
+                            
+                            const padding = 2;
+                            const dpi = 2;
+                            const canvasWidth = (width + padding * 2) * dpi;
+                            const canvasHeight = (height + padding * 2) * dpi;
+                            
+                            canvas.width = canvasWidth;
+                            canvas.height = canvasHeight;
+                            ctx.scale(dpi, dpi);
+                            
+                            ctx.fillStyle = 'white';
+                            ctx.fillRect(0, 0, width + padding * 2, height + padding * 2);
+                            
+                            const svgClone = svg.cloneNode(true);
+                            svgClone.setAttribute('width', width);
+                            svgClone.setAttribute('height', height);
+                            const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgClone.outerHTML)));
+                            
+                            const img = new Image();
+                            img.onload = () => {
+                                const x = padding;
+                                const y = padding;
+                                ctx.drawImage(img, x, y, width, height);
+                                
+                                const dataUrl = canvas.toDataURL('image/png');
+                                document.body.removeChild(tempDiv);
+                                resolve({
+                                    dataUrl: dataUrl,
+                                    width: width,
+                                    height: height
+                                });
+                            };
+                            
+                            img.onerror = () => {
+                                document.body.removeChild(tempDiv);
+                                resolve(null);
+                            };
+                            
+                            img.src = svgDataUrl;
+                        } catch (error) {
+                            console.warn('Error in canvas method:', error);
+                            document.body.removeChild(tempDiv);
+                            resolve(null);
+                        }
+                    }, 100);
+                } catch (error) {
+                    console.warn('Error in svgToImageData:', error);
+                    resolve(null);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
