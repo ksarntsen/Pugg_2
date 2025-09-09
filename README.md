@@ -2,6 +2,8 @@
 
 A modern web application for teachers to generate and share exercises with students, featuring AI-powered exercise creation and an intelligent chat assistant.
 
+<!-- Test deployment: Railway GitHub integration test -->
+
 ## Features
 
 ### Teacher Page
