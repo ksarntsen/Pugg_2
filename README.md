@@ -1,10 +1,8 @@
-# Exercise Generator
+# Pugg Exercise Generator
 
-A modern web application for teachers to generate and share exercises with students, featuring AI-powered exercise creation and an intelligent chat assistant.
+A modern web application for teachers to generate and share exercises with students, featuring AI-powered exercise creation, an intelligent chat assistant, and PostgreSQL database persistence.
 
-<!-- Test deployment: Railway GitHub integration test -->
-
-## Features
+## 🚀 Features
 
 ### Teacher Page
 - **AI Exercise Generation**: Generate diverse, engaging exercises using OpenAI GPT-3.5-turbo
@@ -31,397 +29,322 @@ A modern web application for teachers to generate and share exercises with stude
 - **Smart Context Switching**: Updates when students move to different exercises
 - **Encouraging Responses**: Supportive and age-appropriate communication
 
-## Technology Stack
+## 🛠 Technology Stack
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Backend**: Node.js, Express.js
+- **Database**: PostgreSQL with connection pooling
 - **AI Integration**: OpenAI GPT-3.5-turbo
+- **Authentication**: JWT with bcrypt password hashing
 - **PDF Generation**: jsPDF
-- **Deployment**: Railway.app ready
-- **Database**: PostgreSQL (ready for integration)
+- **Deployment**: Railway.app with Docker
+- **Containerization**: Docker & Docker Compose
 
-## Getting Started
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL (or Docker)
+- OpenAI API key
+- Railway account (for deployment)
 
 ### Local Development
 
-1. Install dependencies:
+#### Option 1: With Docker (Recommended)
 ```bash
+# 1. Clone and install dependencies
+git clone https://github.com/ksarntsen/Pugg_2.git
+cd Pugg_2
 npm install
+
+# 2. Set up environment
+cp .env.example .env
+# Edit .env with your OpenAI API key
+
+# 3. Start with Docker Compose
+npm run docker:dev
 ```
 
-2. Set up environment variables:
+#### Option 2: Local PostgreSQL
 ```bash
-# Create a .env file with your OpenAI API key
-echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
-```
+# 1. Install dependencies
+npm install
 
-3. Start the development server:
-```bash
+# 2. Set up PostgreSQL
+createdb pugg_dev
+psql -d pugg_dev -f database/init.sql
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env with your database URL and OpenAI API key
+
+# 4. Start the application
 npm start
 ```
 
-4. Open your browser and visit `http://localhost:3000`
+The application will be available at `http://localhost:3000`
 
-## Deployment
+## 🐳 Docker Configuration
 
-### Railway Deployment (Recommended)
+### Local Development
+```bash
+# Start PostgreSQL and application
+docker-compose up -d
 
-This application is configured for deployment on [Railway.app](https://railway.app), a modern cloud platform that provides automatic deployments, environment management, and database hosting.
+# View logs
+docker-compose logs -f
 
-#### Prerequisites
-
-1. **Railway CLI**: Install the Railway CLI for local deployment management
-   ```bash
-   npm install -g @railway/cli
-   ```
-
-2. **Railway Account**: Sign up at [railway.app](https://railway.app) and get your API token
-
-3. **OpenAI API Key**: Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
-
-#### Deployment Steps
-
-1. **Login to Railway**:
-   ```bash
-   railway login
-   ```
-
-2. **Initialize Railway Project**:
-   ```bash
-   railway init
-   ```
-   This creates a new Railway project and links it to your local directory.
-
-3. **Set Environment Variables**:
-   ```bash
-   # Set OpenAI API key
-   railway variables --set "OPENAI_API_KEY=your_openai_api_key_here"
-   
-   # Set JWT secret for admin authentication
-   railway variables --set "JWT_SECRET=your-secure-jwt-secret-here"
-   ```
-
-4. **Deploy the Application**:
-   ```bash
-   railway up
-   ```
-   This uploads your code and starts the deployment process.
-
-5. **Get Your App URL**:
-   ```bash
-   railway domain
-   ```
-   This generates a public URL for your deployed application.
-
-#### Railway Configuration
-
-The app includes a `railway.json` configuration file that specifies:
-
-```json
-{
-  "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "NIXPACKS"
-  },
-  "deploy": {
-    "startCommand": "npm start",
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 100,
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
-  }
-}
+# Stop services
+docker-compose down
 ```
 
-**Key Configuration Details**:
-- **Builder**: Uses Nixpacks for automatic Node.js detection
-- **Start Command**: Runs `npm start` (which executes `node server.js`)
-- **Health Check**: Monitors `/health` endpoint for service availability
-- **Restart Policy**: Automatically restarts on failure with up to 10 retries
+### Production Build
+```bash
+# Build Docker image
+npm run docker:build
 
-#### Environment Variables
+# Run container
+npm run docker:run
+```
+
+## 🚀 Railway Deployment
+
+### 1. Prepare Repository
+```bash
+git add .
+git commit -m "Add PostgreSQL support and Docker configuration"
+git push origin main
+```
+
+### 2. Create Railway Project
+1. Go to [Railway](https://railway.app)
+2. Sign in with GitHub
+3. Click "New Project" → "Deploy from GitHub repo"
+4. Select your repository
+
+### 3. Add PostgreSQL Database
+1. In Railway dashboard, click "New" → "Database" → "PostgreSQL"
+2. Railway automatically provides `DATABASE_URL` environment variable
+
+### 4. Configure Environment Variables
+In Railway dashboard → Variables tab:
+```
+OPENAI_API_KEY=your_openai_api_key_here
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your_secure_admin_password
+NODE_ENV=production
+```
+
+### 5. Deploy
+Railway automatically deploys when you push to main branch!
+
+## 🔧 Environment Variables
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `OPENAI_API_KEY` | OpenAI API key for AI functionality | Yes | - |
-| `JWT_SECRET` | Secret key for JWT token generation | Yes | - |
-| `PORT` | Server port (Railway sets this automatically) | No | 3000 |
-| `RAILWAY_ENVIRONMENT` | Railway environment name | Auto | production |
+| `DATABASE_URL` | PostgreSQL connection string | Yes | - |
+| `OPENAI_API_KEY` | OpenAI API key for AI features | Yes | - |
+| `JWT_SECRET` | Secret for JWT token signing | Yes | - |
+| `ADMIN_USERNAME` | Admin login username | No | admin |
+| `ADMIN_PASSWORD` | Admin login password | No | admin123 |
+| `NODE_ENV` | Environment mode | No | development |
+| `PORT` | Server port | No | 3000 |
 
-#### Database Integration (Future)
+## 🗄️ Database Schema
 
-The application is prepared for PostgreSQL database integration:
+The application automatically creates these tables:
 
-**Current State**: Uses in-memory storage for demo purposes
-**Future Implementation**: 
-- Railway provides PostgreSQL as a service
-- Database connection via `DATABASE_URL` environment variable
-- Migration scripts for exercise sets and user data
+### `exercise_sets`
+- `id` - Unique identifier
+- `title` - Exercise set title
+- `exercises` - JSON array of exercises
+- `chat_language` - Language for AI chat
+- `chat_model` - AI model to use
+- `chat_instruction` - Custom chat instructions
+- `created_by` - Creator IP/identifier
+- `created_at` - Creation timestamp
+- `last_used` - Last access timestamp
 
-**To add PostgreSQL**:
+### `system_settings`
+- `id` - Primary key
+- `llm_model` - Default AI model
+- `default_chat_instruction` - Default chat prompt
+- `updated_at` - Last update timestamp
+
+### `admin_users`
+- `id` - Primary key
+- `username` - Admin username
+- `password_hash` - Bcrypt hashed password
+- `created_at` - Account creation timestamp
+
+## 📡 API Endpoints
+
+### Exercise Generation
+- `POST /api/generate-exercises` - Generate exercises using AI
+- `POST /api/generate-ai-exercises` - Generate additional exercises
+
+### AI Chat
+- `POST /api/chat` - Chat with AI tutor
+
+### Admin API
+- `POST /api/admin/login` - Admin authentication
+- `GET /api/admin/settings` - Get system settings
+- `POST /api/admin/settings` - Update system settings
+- `GET /api/admin/exercise-sets` - List all exercise sets
+- `DELETE /api/admin/exercise-sets/:id` - Delete exercise set
+
+### Public API
+- `GET /api/settings/default-chat-instruction` - Get default chat instruction
+- `POST /api/exercise-sets/:id/chat-language` - Update chat language
+- `POST /api/exercise-sets/:id/access` - Track exercise access
+
+### Health Check
+- `GET /health` - Application and database status
+
+## 🔐 Security Features
+
+- **Password Hashing**: Admin passwords secured with bcrypt
+- **JWT Authentication**: Secure token-based admin access
+- **Environment Variables**: Sensitive data stored securely
+- **CORS Protection**: Configured for production use
+- **Helmet Security**: Security headers and protection
+- **Input Validation**: Proper error handling and validation
+
+## 📊 Health Monitoring
+
+### Health Check Endpoint
 ```bash
-# Add PostgreSQL service to your Railway project
-railway add postgresql
-
-# The DATABASE_URL will be automatically set
-railway variables  # View all environment variables
+curl https://your-app.railway.app/health
 ```
 
-#### Monitoring and Logs
-
-**View Deployment Logs**:
-```bash
-railway logs
-```
-
-**Monitor Service Status**:
-```bash
-railway status
-```
-
-**Health Check**:
-The app includes a health check endpoint at `/health` that returns:
+Returns:
 ```json
 {
   "status": "OK",
+  "database": "connected",
   "timestamp": "2025-01-09T11:53:10.025Z"
 }
 ```
 
-#### Railway CLI Commands Reference
+### Railway Monitoring
+- Application logs
+- Database performance
+- Resource usage
+- Health checks
+- Automatic scaling
 
-| Command | Description |
-|---------|-------------|
-| `railway login` | Authenticate with Railway |
-| `railway init` | Initialize new Railway project |
-| `railway up` | Deploy current code |
-| `railway down` | Stop the service |
-| `railway logs` | View deployment logs |
-| `railway variables` | View environment variables |
-| `railway variables --set "KEY=value"` | Set environment variable |
-| `railway domain` | Get public URL |
-| `railway status` | Check service status |
-| `railway service` | Link to specific service |
+## 🛠 Development
 
-#### Production Considerations
-
-1. **Security**:
-   - Change default admin credentials in production
-   - Use strong JWT secrets
-   - Enable HTTPS (Railway provides this automatically)
-
-2. **Performance**:
-   - Railway automatically scales based on traffic
-   - Consider implementing caching for frequently accessed data
-   - Monitor OpenAI API usage and costs
-
-3. **Backup**:
-   - Railway provides automatic backups for PostgreSQL
-   - Consider implementing data export functionality
-
-4. **Monitoring**:
-   - Use Railway's built-in monitoring
-   - Set up alerts for service failures
-   - Monitor OpenAI API rate limits
-
-#### Troubleshooting
-
-**Common Issues**:
-
-1. **Build Failures**:
-   ```bash
-   railway logs  # Check build logs
-   ```
-
-2. **Environment Variable Issues**:
-   ```bash
-   railway variables  # Verify all variables are set
-   ```
-
-3. **Service Not Starting**:
-   ```bash
-   railway status  # Check service status
-   railway logs --follow  # Follow live logs
-   ```
-
-4. **OpenAI API Errors**:
-   - Verify API key is correct and has sufficient credits
-   - Check rate limits in OpenAI dashboard
-
-## Git Integration
-
-### Automatic Deployments from GitHub
-
-The application supports automatic deployments when you push code to GitHub. There are two ways to set this up:
-
-#### Option 1: Railway Dashboard (Recommended)
-
-1. **Connect Repository in Railway:**
-   - Go to your Railway project dashboard
-   - Navigate to your service settings
-   - Click "Connect GitHub Repository"
-   - Select `ksarntsen/Pugg_2` repository
-   - Choose `master` branch
-   - Enable "Auto Deploy"
-
-2. **Deploy by Pushing:**
-   ```bash
-   git add .
-   git commit -m "Add new feature"
-   git push origin master
-   # Railway automatically deploys! 🚀
-   ```
-
-#### Option 2: GitHub Actions (Advanced)
-
-The project includes a GitHub Actions workflow for automated deployments:
-
-1. **Generate Railway Token:**
-   - Go to Railway project settings → "Tokens"
-   - Generate a new project token
-
-2. **Add Token to GitHub Secrets:**
-   - Go to GitHub repository → Settings → "Secrets and variables" → "Actions"
-   - Add secret: `RAILWAY_TOKEN` with your Railway token
-
-3. **Automatic Deployment:**
-   - Push to `master` branch triggers deployment
-   - Monitor deployment in GitHub "Actions" tab
-
-### Development Workflow
-
-```bash
-# 1. Make changes locally
-npm run dev  # Test locally
-
-# 2. Commit and push
-git add .
-git commit -m "feat: add new feature"
-git push origin master
-
-# 3. Railway automatically deploys
-# 4. Check deployment status
-railway status
+### Project Structure
+```
+├── index.html              # Teacher page
+├── student.html            # Student page with AI chat
+├── admin.html              # Admin interface
+├── admin-dashboard.html    # Admin dashboard
+├── styles.css              # Shared styles
+├── script.js               # Teacher page logic
+├── student.js              # Student page logic
+├── admin.js                # Admin page logic
+├── server.js               # Express server with PostgreSQL
+├── database/
+│   ├── init.sql           # Database schema
+│   └── db.js              # Database utilities
+├── Dockerfile             # Production container
+├── docker-compose.yml     # Local development
+├── railway.json           # Railway configuration
+├── package.json           # Dependencies
+└── README.md              # This file
 ```
 
-### Branch Strategy
+### Available Scripts
+```bash
+npm start              # Start production server
+npm run dev            # Start development server
+npm run docker:dev     # Start with Docker Compose
+npm run docker:build   # Build Docker image
+npm run docker:run     # Run Docker container
+```
+
+## 🚨 Troubleshooting
+
+### Local Development Issues
+- **Port 3000 in use**: `lsof -ti:3000 | xargs kill -9`
+- **Database connection**: Check PostgreSQL is running
+- **Environment variables**: Verify `.env` file exists and is correct
+
+### Railway Deployment Issues
+- **Build failures**: Check Railway logs in dashboard
+- **Database issues**: Verify PostgreSQL service is running
+- **Environment variables**: Ensure all required variables are set
+- **Health check**: Visit `/health` endpoint
+
+### Database Issues
+- **Connection errors**: Verify `DATABASE_URL` format
+- **Schema issues**: Check `database/init.sql` was run
+- **Performance**: Monitor connection pool usage
+
+## 🔄 Git Integration
+
+### Automatic Deployments
+Railway automatically deploys when you push to the main branch:
 
 ```bash
-# For new features
+# Make changes
+git add .
+git commit -m "Add new feature"
+git push origin main
+# Railway deploys automatically! 🚀
+```
+
+### Development Workflow
+```bash
+# 1. Create feature branch
 git checkout -b feature/new-feature
-# ... make changes ...
+
+# 2. Make changes and test
+npm run dev
+
+# 3. Commit and push
+git add .
 git commit -m "Add new feature"
 git push origin feature/new-feature
 
-# Merge to master when ready
-git checkout master
+# 4. Merge to main for deployment
+git checkout main
 git merge feature/new-feature
-git push origin master  # Triggers production deployment
+git push origin main
 ```
 
-## Project Structure
+## 📈 Performance & Scaling
 
-```
-├── index.html          # Teacher page
-├── student.html        # Student page with AI chat
-├── styles.css          # Shared styles and chat UI
-├── script.js           # Teacher page logic
-├── student.js          # Student page logic with chat functionality
-├── server.js           # Express server with AI endpoints
-├── package.json        # Dependencies
-├── railway.json        # Railway deployment config
-├── .gitignore          # Git ignore rules
-├── .github/
-│   ├── workflows/
-│   │   └── deploy.yml  # GitHub Actions deployment workflow
-│   └── README.md       # GitHub Actions documentation
-└── README.md           # This file
-```
+- **Connection Pooling**: PostgreSQL connections are pooled for efficiency
+- **Automatic Scaling**: Railway scales based on traffic
+- **Caching**: Consider implementing Redis for frequently accessed data
+- **Monitoring**: Use Railway's built-in monitoring tools
 
-## API Endpoints
+## 🔮 Future Enhancements
 
-### Exercise Generation
-- `POST /api/generate-exercises` - Generate exercises using AI
-  - Body: `{ prompt: string, count: number }`
-  - Returns: `{ exercises: array, title: string }`
+- [ ] User authentication and accounts
+- [ ] Exercise templates and libraries
+- [ ] Analytics and progress tracking
+- [ ] Advanced AI prompts for different grade levels
+- [ ] Mathematical expression rendering (MathJax)
+- [ ] Multi-language support
+- [ ] Real-time collaboration
+- [ ] Mobile app
 
-### AI Chat Assistant
-- `POST /api/chat` - Chat with AI tutor
-  - Body: `{ message: string, exerciseContent: string, chatHistory: array }`
-  - Returns: `{ response: string }`
-
-### Static Routes
-- `GET /` - Teacher page
-- `GET /student` - Student page
-- `GET /health` - Health check endpoint
-
-## AI Features
-
-### Exercise Generation
-- **Smart Prompting**: AI creates diverse, engaging exercises based on teacher input
-- **Subject Adaptation**: Automatically adapts to different subjects (math, science, language arts, etc.)
-- **Age-Appropriate Content**: Generates educational content suitable for various grade levels
-- **Title Generation**: Creates appropriate titles for exercise sets
-
-### Chat Assistant
-- **Context Awareness**: Understands the current exercise the student is working on
-- **Educational Guidance**: Provides hints and step-by-step guidance
-- **Conversation Memory**: Maintains context throughout the chat session
-- **Encouraging Tone**: Supportive and motivating responses
-
-## User Interface
-
-### Design Philosophy
-- **Modern & Clean**: Minimalist design with elegant typography
-- **Muted Color Palette**: Comfortable colors (grays, blues, purples)
-- **Smooth Animations**: Dynamic transitions and hover effects
-- **Responsive**: Mobile-first design that works on all devices
-
-### Key UI Components
-- **Exercise Cards**: Editable, draggable exercise items
-- **Progress Bar**: Visual progress tracking for students
-- **Chat Bubble**: Floating AI assistant in bottom right corner
-- **Navigation**: Intuitive arrow buttons and keyboard shortcuts
-
-## Development
-
-### Key Features Implemented
-- ✅ AI-powered exercise generation
-- ✅ Drag & drop exercise reordering
-- ✅ PDF export functionality
-- ✅ URL-based state management
-- ✅ AI chat assistant with context awareness
-- ✅ Progress tracking
-- ✅ Responsive design
-- ✅ Modern UI/UX
-
-### Future Enhancements
-- Database integration with PostgreSQL
-- User authentication and accounts
-- Exercise templates and libraries
-- Analytics and progress tracking
-- Advanced AI prompts for different grade levels
-- Mathematical expression rendering (MathJax)
-- Multi-language support
-
-## Dependencies
-
-```json
-{
-  "express": "^4.18.2",
-  "cors": "^2.8.5",
-  "helmet": "^7.0.0",
-  "compression": "^1.7.4",
-  "openai": "^4.20.1",
-  "dotenv": "^16.3.1"
-}
-```
-
-## Environment Variables
-
-- `OPENAI_API_KEY` - Your OpenAI API key for AI functionality
-- `PORT` - Server port (defaults to 3000)
-
-## License
+## 📄 License
 
 MIT License
+
+## 🆘 Support
+
+- **Documentation**: Check this README and code comments
+- **Issues**: Create GitHub issues for bugs or feature requests
+- **Health Check**: Monitor application status at `/health`
+- **Railway Logs**: Check deployment logs in Railway dashboard
+
+---
+
+**Ready to deploy?** Follow the [Railway Deployment](#-railway-deployment) section above! 🚀
