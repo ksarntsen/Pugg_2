@@ -6,6 +6,8 @@ const compression = require('compression');
 const path = require('path');
 const OpenAI = require('openai');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const db = require('./database/db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,35 +17,24 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
-// Admin credentials (in production, use environment variables)
-const ADMIN_CREDENTIALS = {
-    username: 'admin',
-    password: 'admin123'
-};
-
+// Environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
-// In-memory storage for demo (in production, use a database)
-let exerciseSets = [];
-let systemSettings = {
-    llmModel: 'gpt-3.5-turbo',
-    defaultChatInstruction: `You are a helpful AI tutor assistant for students working on exercises. You should:
-- Be encouraging and supportive
-- Provide hints and guidance without giving away the answer
-- Help students understand concepts and problem-solving approaches
-- Ask clarifying questions when needed
-- Keep responses concise and age-appropriate
-- If the student asks for the direct answer, guide them to think through it step by step instead. Start with the first step, and only move on when the student mastered the first step.
-
-IMPORTANT: When discussing mathematical expressions, formulas, or symbols:
-- Use proper mathematical notation and LaTeX formatting when appropriate
-- For inline math expressions, use single dollar signs: $x^2 + 3x - 4 = 0$
-- For display math expressions, use double dollar signs: $$\\frac{a}{b} = \\frac{c}{d}$$
-- Use proper mathematical symbols: π, ∑, ∫, √, ±, ≤, ≥, ≠, ∞, etc.
-- When explaining mathematical concepts, be precise with notation and terminology
-
-Respond naturally and helpfully to the student's question. The chat users are 13 years old. Answer accordingly. Also keep responses super short. Only one sentence, max two if really neccessary.`
-};
+// Initialize admin user on startup
+async function initializeAdmin() {
+    try {
+        const existingAdmin = await db.getAdminUser(ADMIN_USERNAME);
+        if (!existingAdmin) {
+            const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+            await db.createAdminUser(ADMIN_USERNAME, hashedPassword);
+            console.log('Admin user created successfully');
+        }
+    } catch (error) {
+        console.error('Error initializing admin user:', error);
+    }
+}
 
 // Middleware
 app.use(helmet({
@@ -97,7 +88,7 @@ app.post('/api/generate-exercises', async (req, res) => {
         const exercises = await generateExercisesWithAI(prompt, count);
         const title = await generateTitleWithAI(prompt);
         
-        // Generate unique ID and save to storage
+        // Generate unique ID and save to database
         const id = Math.random().toString(36).substr(2, 9);
         const userIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
         
@@ -111,7 +102,7 @@ app.post('/api/generate-exercises', async (req, res) => {
             lastUsed: new Date().toISOString()
         };
         
-        exerciseSets.push(exerciseSet);
+        await db.createExerciseSet(exerciseSet);
         
         res.json({ exercises, title, id });
     } catch (error) {
@@ -131,16 +122,17 @@ app.post('/api/generate-ai-exercises', async (req, res) => {
 
         const newExercises = await generateAdditionalExercisesWithAI(prompt, count, existingExercises);
         
-        // Update the exercise set in storage if exerciseSetId is provided
+        // Update the exercise set in database if exerciseSetId is provided
         if (exerciseSetId) {
-            const exerciseSet = exerciseSets.find(set => set.id === exerciseSetId);
+            const exerciseSet = await db.getExerciseSet(exerciseSetId);
             if (exerciseSet) {
                 // Add new exercises to existing ones
                 const newExerciseObjects = newExercises.map((exercise, index) => ({
                     id: exerciseSet.exercises.length + index + 1,
                     text: exercise.text
                 }));
-                exerciseSet.exercises.push(...newExerciseObjects);
+                const updatedExercises = [...exerciseSet.exercises, ...newExerciseObjects];
+                await db.updateExerciseSet(exerciseSetId, { exercises: updatedExercises });
             }
         }
         
@@ -167,21 +159,22 @@ app.post('/api/chat', async (req, res) => {
         }
 
         // Get the chat model and instruction for this exercise set
-        let chatModel = systemSettings.llmModel; // Default to system setting
-        let chatInstruction = systemSettings.defaultChatInstruction; // Default instruction
+        const systemSettings = await db.getSystemSettings();
+        let chatModel = systemSettings.llm_model; // Default to system setting
+        let chatInstruction = systemSettings.default_chat_instruction; // Default instruction
         let chatLanguage = 'English'; // Default language
         
         if (exerciseSetId) {
-            const exerciseSet = exerciseSets.find(set => set.id === exerciseSetId);
+            const exerciseSet = await db.getExerciseSet(exerciseSetId);
             if (exerciseSet) {
-                if (exerciseSet.chatModel) {
-                    chatModel = exerciseSet.chatModel;
+                if (exerciseSet.chat_model) {
+                    chatModel = exerciseSet.chat_model;
                 }
-                if (exerciseSet.chatInstruction) {
-                    chatInstruction = exerciseSet.chatInstruction;
+                if (exerciseSet.chat_instruction) {
+                    chatInstruction = exerciseSet.chat_instruction;
                 }
-                if (exerciseSet.chatLanguage) {
-                    chatLanguage = exerciseSet.chatLanguage;
+                if (exerciseSet.chat_language) {
+                    chatLanguage = exerciseSet.chat_language;
                 }
             }
         }
@@ -226,11 +219,12 @@ app.post('/api/exercises', (req, res) => {
 });
 
 // Admin API routes
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         
-        if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        const admin = await db.getAdminUser(username);
+        if (admin && await bcrypt.compare(password, admin.password_hash)) {
             const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '24h' });
             res.json({ token });
         } else {
@@ -259,27 +253,40 @@ const verifyAdminToken = (req, res, next) => {
     }
 };
 
-app.get('/api/admin/settings', verifyAdminToken, (req, res) => {
-    res.json(systemSettings);
+app.get('/api/admin/settings', verifyAdminToken, async (req, res) => {
+    try {
+        const settings = await db.getSystemSettings();
+        res.json(settings);
+    } catch (error) {
+        console.error('Error fetching settings:', error);
+        res.status(500).json({ error: 'Failed to fetch settings' });
+    }
 });
 
 // Public endpoint for getting default chat instruction (for teacher page)
-app.get('/api/settings/default-chat-instruction', (req, res) => {
-    res.json({ defaultChatInstruction: systemSettings.defaultChatInstruction });
+app.get('/api/settings/default-chat-instruction', async (req, res) => {
+    try {
+        const settings = await db.getSystemSettings();
+        res.json({ defaultChatInstruction: settings.default_chat_instruction });
+    } catch (error) {
+        console.error('Error fetching default chat instruction:', error);
+        res.status(500).json({ error: 'Failed to fetch default chat instruction' });
+    }
 });
 
-app.post('/api/admin/settings', verifyAdminToken, (req, res) => {
+app.post('/api/admin/settings', verifyAdminToken, async (req, res) => {
     try {
         const { llmModel, defaultChatInstruction } = req.body;
         
+        const updates = {};
         if (llmModel) {
-            systemSettings.llmModel = llmModel;
+            updates.llmModel = llmModel;
         }
-        
         if (defaultChatInstruction !== undefined) {
-            systemSettings.defaultChatInstruction = defaultChatInstruction;
+            updates.defaultChatInstruction = defaultChatInstruction;
         }
         
+        await db.updateSystemSettings(updates);
         res.json({ message: 'Settings updated successfully' });
     } catch (error) {
         console.error('Settings update error:', error);
@@ -287,20 +294,25 @@ app.post('/api/admin/settings', verifyAdminToken, (req, res) => {
     }
 });
 
-app.get('/api/admin/exercise-sets', verifyAdminToken, (req, res) => {
-    res.json(exerciseSets);
+app.get('/api/admin/exercise-sets', verifyAdminToken, async (req, res) => {
+    try {
+        const exerciseSets = await db.getAllExerciseSets();
+        res.json(exerciseSets);
+    } catch (error) {
+        console.error('Error fetching exercise sets:', error);
+        res.status(500).json({ error: 'Failed to fetch exercise sets' });
+    }
 });
 
-app.delete('/api/admin/exercise-sets/:id', verifyAdminToken, (req, res) => {
+app.delete('/api/admin/exercise-sets/:id', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const index = exerciseSets.findIndex(set => set.id === id);
+        const deleted = await db.deleteExerciseSet(id);
         
-        if (index === -1) {
+        if (!deleted) {
             return res.status(404).json({ error: 'Exercise set not found' });
         }
         
-        exerciseSets.splice(index, 1);
         res.json({ message: 'Exercise set deleted successfully' });
     } catch (error) {
         console.error('Delete error:', error);
@@ -308,17 +320,16 @@ app.delete('/api/admin/exercise-sets/:id', verifyAdminToken, (req, res) => {
     }
 });
 
-app.post('/api/admin/exercise-sets/:id/chat-model', verifyAdminToken, (req, res) => {
+app.post('/api/admin/exercise-sets/:id/chat-model', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { chatModel } = req.body;
         
-        const exerciseSet = exerciseSets.find(set => set.id === id);
+        const exerciseSet = await db.updateExerciseSet(id, { chatModel });
         if (!exerciseSet) {
             return res.status(404).json({ error: 'Exercise set not found' });
         }
         
-        exerciseSet.chatModel = chatModel;
         res.json({ message: 'Chat model updated successfully' });
     } catch (error) {
         console.error('Chat model update error:', error);
@@ -326,17 +337,16 @@ app.post('/api/admin/exercise-sets/:id/chat-model', verifyAdminToken, (req, res)
     }
 });
 
-app.post('/api/admin/exercise-sets/:id/chat-instruction', (req, res) => {
+app.post('/api/admin/exercise-sets/:id/chat-instruction', async (req, res) => {
     try {
         const { id } = req.params;
         const { chatInstruction } = req.body;
         
-        const exerciseSet = exerciseSets.find(set => set.id === id);
+        const exerciseSet = await db.updateExerciseSet(id, { chatInstruction });
         if (!exerciseSet) {
             return res.status(404).json({ error: 'Exercise set not found' });
         }
         
-        exerciseSet.chatInstruction = chatInstruction;
         res.json({ message: 'Chat instruction updated successfully' });
     } catch (error) {
         console.error('Chat instruction update error:', error);
@@ -344,17 +354,16 @@ app.post('/api/admin/exercise-sets/:id/chat-instruction', (req, res) => {
     }
 });
 
-app.post('/api/admin/exercise-sets/:id/chat-language', (req, res) => {
+app.post('/api/admin/exercise-sets/:id/chat-language', async (req, res) => {
     try {
         const { id } = req.params;
         const { chatLanguage } = req.body;
         
-        const exerciseSet = exerciseSets.find(set => set.id === id);
+        const exerciseSet = await db.updateExerciseSet(id, { chatLanguage });
         if (!exerciseSet) {
             return res.status(404).json({ error: 'Exercise set not found' });
         }
         
-        exerciseSet.chatLanguage = chatLanguage;
         res.json({ message: 'Chat language updated successfully' });
     } catch (error) {
         console.error('Chat language update error:', error);
@@ -363,17 +372,16 @@ app.post('/api/admin/exercise-sets/:id/chat-language', (req, res) => {
 });
 
 // Public endpoint for updating chat language (for teachers)
-app.post('/api/exercise-sets/:id/chat-language', (req, res) => {
+app.post('/api/exercise-sets/:id/chat-language', async (req, res) => {
     try {
         const { id } = req.params;
         const { chatLanguage } = req.body;
         
-        const exerciseSet = exerciseSets.find(set => set.id === id);
+        const exerciseSet = await db.updateExerciseSet(id, { chatLanguage });
         if (!exerciseSet) {
             return res.status(404).json({ error: 'Exercise set not found' });
         }
         
-        exerciseSet.chatLanguage = chatLanguage;
         res.json({ message: 'Chat language updated successfully' });
     } catch (error) {
         console.error('Chat language update error:', error);
@@ -382,15 +390,10 @@ app.post('/api/exercise-sets/:id/chat-language', (req, res) => {
 });
 
 // Endpoint to track exercise set access
-app.post('/api/exercise-sets/:id/access', (req, res) => {
+app.post('/api/exercise-sets/:id/access', async (req, res) => {
     try {
         const { id } = req.params;
-        const exerciseSet = exerciseSets.find(set => set.id === id);
-        
-        if (exerciseSet) {
-            exerciseSet.lastUsed = new Date().toISOString();
-        }
-        
+        await db.updateLastUsed(id);
         res.json({ message: 'Access tracked' });
     } catch (error) {
         console.error('Access tracking error:', error);
@@ -399,8 +402,22 @@ app.post('/api/exercise-sets/:id/access', (req, res) => {
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+    try {
+        const dbHealthy = await db.healthCheck();
+        res.json({ 
+            status: dbHealthy ? 'OK' : 'DEGRADED',
+            database: dbHealthy ? 'connected' : 'disconnected',
+            timestamp: new Date().toISOString() 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'ERROR',
+            database: 'error',
+            timestamp: new Date().toISOString(),
+            error: error.message
+        });
+    }
 });
 
 // AI Generation Functions
@@ -606,9 +623,37 @@ async function generateChatResponse(message, chatHistory, chatModel = systemSett
 }
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Visit http://localhost:${PORT} to use the app`);
+async function startServer() {
+    try {
+        // Initialize admin user
+        await initializeAdmin();
+        
+        // Start the server
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+            console.log(`Visit http://localhost:${PORT} to use the app`);
+            console.log(`Health check available at http://localhost:${PORT}/health`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+// Handle graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    await db.close();
+    process.exit(0);
 });
+
+process.on('SIGINT', async () => {
+    console.log('SIGINT received, shutting down gracefully');
+    await db.close();
+    process.exit(0);
+});
+
+// Start the server
+startServer();
 
 module.exports = app;

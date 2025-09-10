@@ -5,9 +5,13 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "docker:dev": "docker-compose up",
+    "docker:build": "docker build -t pugg-app .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env pugg-app"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -15,7 +19,8 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^2.7.0",
-    "openai": "^4.20.1"
+    "openai": "^4.20.1",
+    "pg": "^8.11.3"
   },
   "engines": {
     "node": ">=18.0.0"
