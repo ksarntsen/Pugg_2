@@ -313,14 +313,17 @@ class ExerciseGenerator {
         // Save initial language setting to server
         this.saveLanguageToServer();
         
-        // Set up language input event listener now that the element exists
-        const chatLanguageInput = document.getElementById('chatLanguage');
-        if (chatLanguageInput && !chatLanguageInput.hasAttribute('data-listener-added')) {
-            chatLanguageInput.addEventListener('input', () => {
+        // Set up language button event listener now that the element exists
+        const setLanguageBtn = document.getElementById('setLanguageBtn');
+        if (setLanguageBtn && !setLanguageBtn.hasAttribute('data-listener-added')) {
+            setLanguageBtn.addEventListener('click', () => {
+                const language = document.getElementById('chatLanguage').value;
+                console.log('Set language button clicked, language:', language);
                 this.saveExerciseSet();
                 this.saveLanguageToServer();
             });
-            chatLanguageInput.setAttribute('data-listener-added', 'true');
+            setLanguageBtn.setAttribute('data-listener-added', 'true');
+            console.log('Set language button event listener added');
         }
     }
 
@@ -1237,16 +1240,43 @@ class ExerciseGenerator {
     async saveLanguageToServer() {
         if (this.exerciseId) {
             const chatLanguage = document.getElementById('chatLanguage').value || 'English';
+            const setLanguageBtn = document.getElementById('setLanguageBtn');
+            
+            // Show loading state
+            const originalText = setLanguageBtn.textContent;
+            setLanguageBtn.textContent = 'Setting...';
+            setLanguageBtn.disabled = true;
+            
             try {
-                await fetch(`/api/exercise-sets/${this.exerciseId}/chat-language`, {
+                const response = await fetch(`/api/exercise-sets/${this.exerciseId}/chat-language`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ chatLanguage })
                 });
+                
+                if (response.ok) {
+                    // Show success state
+                    setLanguageBtn.textContent = '✓ Set';
+                    setLanguageBtn.style.backgroundColor = '#48bb78';
+                    setTimeout(() => {
+                        setLanguageBtn.textContent = originalText;
+                        setLanguageBtn.style.backgroundColor = '';
+                        setLanguageBtn.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error('Failed to save language');
+                }
             } catch (error) {
                 console.error('Error saving language to server:', error);
+                setLanguageBtn.textContent = 'Error';
+                setLanguageBtn.style.backgroundColor = '#e53e3e';
+                setTimeout(() => {
+                    setLanguageBtn.textContent = originalText;
+                    setLanguageBtn.style.backgroundColor = '';
+                    setLanguageBtn.disabled = false;
+                }, 2000);
             }
         }
     }

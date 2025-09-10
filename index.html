@@ -83,9 +83,11 @@
                     <div class="language-settings">
                         <div class="form-group">
                             <label for="chatLanguage">Chat Language:</label>
-                            <input type="text" id="chatLanguage" placeholder="e.g., English, Norwegian, Spanish..." value="English">
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <input type="text" id="chatLanguage" placeholder="e.g., English, Norwegian, Spanish..." value="English" style="flex: 1;">
+                                <button type="button" id="setLanguageBtn" class="btn btn-small">Set Language</button>
+                            </div>
                             <small class="form-help">The AI assistant will respond in this language unless prompted otherwise by the student.</small>
-                            <button type="button" id="testLanguageSave" class="btn btn-small" style="margin-top: 0.5rem;">Test Save Language</button>
                         </div>
                     </div>
                     <div class="share-link-container">
