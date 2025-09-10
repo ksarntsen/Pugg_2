@@ -86,6 +86,12 @@ class ExerciseGenerator {
                 this.closeAIGenerationModal();
             }
         });
+
+        // Language input change
+        document.getElementById('chatLanguage').addEventListener('input', () => {
+            this.saveExerciseSet();
+            this.saveLanguageToServer();
+        });
     }
 
     async generateExercises() {
@@ -1178,6 +1184,12 @@ class ExerciseGenerator {
                 
                 this.displayExercises(data.title);
                 this.showShareInfo();
+                
+                // Load language setting if available
+                if (data.chatLanguage) {
+                    document.getElementById('chatLanguage').value = data.chatLanguage;
+                }
+                
                 this.trackAccess();
             }
         } catch (error) {
@@ -1200,13 +1212,32 @@ class ExerciseGenerator {
     saveExerciseSet() {
         if (this.exerciseId && this.exercises.length > 0) {
             const title = document.getElementById('exerciseTitle').value;
+            const chatLanguage = document.getElementById('chatLanguage').value || 'English';
             const data = {
                 title: title,
                 exercises: this.exercises,
+                chatLanguage: chatLanguage,
                 timestamp: new Date().toISOString()
             };
             
             localStorage.setItem(`exercise_${this.exerciseId}`, JSON.stringify(data));
+        }
+    }
+
+    async saveLanguageToServer() {
+        if (this.exerciseId) {
+            const chatLanguage = document.getElementById('chatLanguage').value || 'English';
+            try {
+                await fetch(`/api/exercise-sets/${this.exerciseId}/chat-language`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ chatLanguage })
+                });
+            } catch (error) {
+                console.error('Error saving language to server:', error);
+            }
         }
     }
 

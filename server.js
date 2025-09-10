@@ -105,6 +105,7 @@ app.post('/api/generate-exercises', async (req, res) => {
             id,
             title,
             exercises,
+            chatLanguage: 'English', // Default language
             createdBy: userIP,
             createdAt: new Date().toISOString(),
             lastUsed: new Date().toISOString()
@@ -167,6 +168,7 @@ app.post('/api/chat', async (req, res) => {
         // Get the chat model and instruction for this exercise set
         let chatModel = systemSettings.llmModel; // Default to system setting
         let chatInstruction = systemSettings.defaultChatInstruction; // Default instruction
+        let chatLanguage = 'English'; // Default language
         
         if (exerciseSetId) {
             const exerciseSet = exerciseSets.find(set => set.id === exerciseSetId);
@@ -177,8 +179,15 @@ app.post('/api/chat', async (req, res) => {
                 if (exerciseSet.chatInstruction) {
                     chatInstruction = exerciseSet.chatInstruction;
                 }
+                if (exerciseSet.chatLanguage) {
+                    chatLanguage = exerciseSet.chatLanguage;
+                }
             }
         }
+        
+        // Add language instruction to the chat instruction
+        const languageInstruction = `Respond in the following language: ${chatLanguage}, unless prompted by the chat otherwise.`;
+        chatInstruction = `${languageInstruction}\n\n${chatInstruction}`;
 
         const response = await generateChatResponse(message, chatHistory, chatModel, chatInstruction);
         res.json({ response });
@@ -315,6 +324,43 @@ app.post('/api/admin/exercise-sets/:id/chat-instruction', (req, res) => {
     } catch (error) {
         console.error('Chat instruction update error:', error);
         res.status(500).json({ error: 'Failed to update chat instruction' });
+    }
+});
+
+app.post('/api/admin/exercise-sets/:id/chat-language', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { chatLanguage } = req.body;
+        
+        const exerciseSet = exerciseSets.find(set => set.id === id);
+        if (!exerciseSet) {
+            return res.status(404).json({ error: 'Exercise set not found' });
+        }
+        
+        exerciseSet.chatLanguage = chatLanguage;
+        res.json({ message: 'Chat language updated successfully' });
+    } catch (error) {
+        console.error('Chat language update error:', error);
+        res.status(500).json({ error: 'Failed to update chat language' });
+    }
+});
+
+// Public endpoint for updating chat language (for teachers)
+app.post('/api/exercise-sets/:id/chat-language', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { chatLanguage } = req.body;
+        
+        const exerciseSet = exerciseSets.find(set => set.id === id);
+        if (!exerciseSet) {
+            return res.status(404).json({ error: 'Exercise set not found' });
+        }
+        
+        exerciseSet.chatLanguage = chatLanguage;
+        res.json({ message: 'Chat language updated successfully' });
+    } catch (error) {
+        console.error('Chat language update error:', error);
+        res.status(500).json({ error: 'Failed to update chat language' });
     }
 });
 
@@ -466,32 +512,51 @@ Make sure the new exercises fit well with the existing ones and maintain the sam
 
 async function generateChatResponse(message, chatHistory, chatModel = systemSettings.llmModel, chatInstruction = systemSettings.defaultChatInstruction) {
     try {
-        const messages = [
-            {
-                role: "system",
-                content: chatInstruction
+        // Check if this is a GPT-5 model that requires the Responses API
+        const isGPT5Model = chatModel.startsWith('gpt-5');
+        
+        if (isGPT5Model) {
+            // Use Responses API for GPT-5 models
+            const input = `${chatInstruction}\n\n${message}`;
+            
+            const response = await openai.responses.create({
+                model: chatModel,
+                input: input,
+                reasoning: { effort: "minimal" },
+                text: { verbosity: "medium" },
+                max_output_tokens: 300
+            });
+
+            return response.output_text.trim();
+        } else {
+            // Use Chat Completions API for older models
+            const messages = [
+                {
+                    role: "system",
+                    content: chatInstruction
+                }
+            ];
+
+            // Add chat history if provided
+            if (chatHistory && chatHistory.length > 0) {
+                messages.push(...chatHistory);
             }
-        ];
 
-        // Add chat history if provided
-        if (chatHistory && chatHistory.length > 0) {
-            messages.push(...chatHistory);
+            // Add the current message (already formatted with context)
+            messages.push({
+                role: "user",
+                content: message
+            });
+
+            const completion = await openai.chat.completions.create({
+                model: chatModel,
+                messages: messages,
+                max_tokens: 300,
+                temperature: 0.7
+            });
+
+            return completion.choices[0].message.content.trim();
         }
-
-        // Add the current message (already formatted with context)
-        messages.push({
-            role: "user",
-            content: message
-        });
-
-        const completion = await openai.chat.completions.create({
-            model: chatModel,
-            messages: messages,
-            max_tokens: 300,
-            temperature: 0.7
-        });
-
-        return completion.choices[0].message.content.trim();
     } catch (error) {
         console.error('OpenAI API error for chat:', error);
         return "I'm sorry, I'm having trouble responding right now. Please try again in a moment.";

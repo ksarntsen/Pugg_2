@@ -1000,6 +1000,40 @@ header p {
     color: #718096;
 }
 
+/* Language settings styling */
+.language-settings {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.language-settings .form-group {
+    margin-bottom: 0;
+}
+
+.language-settings label {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.75rem;
+}
+
+.language-settings input {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.language-settings input:focus {
+    border-color: #FFC700;
+    box-shadow: 0 0 0 3px rgba(255, 199, 0, 0.1);
+    outline: none;
+}
+
 .btn-instruction {
     background: #FFC700;
     color: #2E2E2E;
