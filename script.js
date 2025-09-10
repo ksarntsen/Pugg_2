@@ -310,9 +310,6 @@ class ExerciseGenerator {
 
         shareInfo.style.display = 'block';
         
-        // Save initial language setting to server
-        this.saveLanguageToServer();
-        
         // Set up language button event listener now that the element exists
         const setLanguageBtn = document.getElementById('setLanguageBtn');
         if (setLanguageBtn && !setLanguageBtn.hasAttribute('data-listener-added')) {
