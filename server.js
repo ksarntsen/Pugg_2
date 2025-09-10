@@ -188,6 +188,9 @@ app.post('/api/chat', async (req, res) => {
         // Add language instruction to the chat instruction
         const languageInstruction = `Respond in the following language: ${chatLanguage}, unless prompted by the chat otherwise.`;
         chatInstruction = `${languageInstruction}\n\n${chatInstruction}`;
+        
+        console.log('Chat language set to:', chatLanguage);
+        console.log('Language instruction:', languageInstruction);
 
         const response = await generateChatResponse(message, chatHistory, chatModel, chatInstruction);
         res.json({ response });

@@ -87,11 +87,6 @@ class ExerciseGenerator {
             }
         });
 
-        // Language input change
-        document.getElementById('chatLanguage').addEventListener('input', () => {
-            this.saveExerciseSet();
-            this.saveLanguageToServer();
-        });
     }
 
     async generateExercises() {
@@ -314,6 +309,19 @@ class ExerciseGenerator {
         teacherLink.value = teacherUrl;
 
         shareInfo.style.display = 'block';
+        
+        // Save initial language setting to server
+        this.saveLanguageToServer();
+        
+        // Set up language input event listener now that the element exists
+        const chatLanguageInput = document.getElementById('chatLanguage');
+        if (chatLanguageInput && !chatLanguageInput.hasAttribute('data-listener-added')) {
+            chatLanguageInput.addEventListener('input', () => {
+                this.saveExerciseSet();
+                this.saveLanguageToServer();
+            });
+            chatLanguageInput.setAttribute('data-listener-added', 'true');
+        }
     }
 
     async copyToClipboard(elementId) {
@@ -1188,6 +1196,8 @@ class ExerciseGenerator {
                 // Load language setting if available
                 if (data.chatLanguage) {
                     document.getElementById('chatLanguage').value = data.chatLanguage;
+                    // Also save to server to ensure consistency
+                    this.saveLanguageToServer();
                 }
                 
                 this.trackAccess();
