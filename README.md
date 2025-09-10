@@ -1,18 +1,19 @@
 # Pugg Exercise Generator
 
-A modern web application for teachers to generate and share exercises with students, featuring AI-powered exercise creation, an intelligent chat assistant, and PostgreSQL database persistence.
+A modern web application for teachers to generate and share exercises with students, featuring AI-powered exercise creation using GPT-5, an intelligent chat assistant with configurable reasoning and verbosity, and PostgreSQL database persistence.
 
 ## 🚀 Features
 
 ### Teacher Page
-- **AI Exercise Generation**: Generate diverse, engaging exercises using OpenAI GPT-3.5-turbo
+- **AI Exercise Generation**: Generate diverse, engaging exercises using OpenAI GPT-5 with configurable reasoning and verbosity
 - **Custom Prompts**: Input any subject or topic to create relevant exercises
 - **Editable Content**: All exercises and titles are fully editable
 - **Drag & Drop Reordering**: Easily reorder exercises by dragging
 - **Add/Remove Exercises**: Add new exercises or remove existing ones
-- **PDF Export**: Download exercise sets as professional PDFs
+- **PDF Export**: Download exercise sets as professional PDFs with mathematical expression support
 - **Share Links**: Generate student links and teacher return links
 - **State Persistence**: Save and return to exercise sets via URLs
+- **AI Model Selection**: Choose between GPT-5, GPT-5 Mini, or GPT-5 Nano for optimal performance
 
 ### Student Page
 - **Clean Interface**: Minimal, elegant design with muted color palette
@@ -28,15 +29,21 @@ A modern web application for teachers to generate and share exercises with stude
 - **Conversation Memory**: Maintains chat history throughout the session
 - **Smart Context Switching**: Updates when students move to different exercises
 - **Encouraging Responses**: Supportive and age-appropriate communication
+- **Configurable Intelligence**: Adjustable reasoning effort (minimal, low, medium, high) per exercise set
+- **Adaptive Verbosity**: Customizable response length (low, medium, high) per exercise set
+- **GPT-5 Powered**: Uses the latest OpenAI GPT-5 models for superior reasoning and understanding
 
 ## 🛠 Technology Stack
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Backend**: Node.js, Express.js
 - **Database**: PostgreSQL with connection pooling
-- **AI Integration**: OpenAI GPT-3.5-turbo
+- **AI Integration**: OpenAI GPT-5 (Responses API)
+  - GPT-5: Best for complex reasoning and multi-step tasks
+  - GPT-5 Mini: Balanced performance and cost
+  - GPT-5 Nano: Fastest responses for simple tasks
 - **Authentication**: JWT with bcrypt password hashing
-- **PDF Generation**: jsPDF
+- **PDF Generation**: jsPDF with MathJax support
 - **Deployment**: Railway.app with Docker
 - **Containerization**: Docker & Docker Compose
 
@@ -160,15 +167,17 @@ The application automatically creates these tables:
 - `title` - Exercise set title
 - `exercises` - JSON array of exercises
 - `chat_language` - Language for AI chat
-- `chat_model` - AI model to use
+- `chat_model` - AI model to use (gpt-5, gpt-5-mini, gpt-5-nano)
 - `chat_instruction` - Custom chat instructions
+- `reasoning_effort` - AI reasoning effort (minimal, low, medium, high)
+- `verbosity` - AI response verbosity (low, medium, high)
 - `created_by` - Creator IP/identifier
 - `created_at` - Creation timestamp
 - `last_used` - Last access timestamp
 
 ### `system_settings`
 - `id` - Primary key
-- `llm_model` - Default AI model
+- `llm_model` - Default AI model (gpt-5, gpt-5-mini, gpt-5-nano)
 - `default_chat_instruction` - Default chat prompt
 - `updated_at` - Last update timestamp
 
@@ -193,6 +202,10 @@ The application automatically creates these tables:
 - `POST /api/admin/settings` - Update system settings
 - `GET /api/admin/exercise-sets` - List all exercise sets
 - `DELETE /api/admin/exercise-sets/:id` - Delete exercise set
+- `POST /api/admin/exercise-sets/:id/chat-model` - Update chat model
+- `POST /api/admin/exercise-sets/:id/chat-instruction` - Update chat instruction
+- `POST /api/admin/exercise-sets/:id/reasoning-effort` - Update reasoning effort
+- `POST /api/admin/exercise-sets/:id/verbosity` - Update verbosity
 
 ### Public API
 - `GET /api/settings/default-chat-instruction` - Get default chat instruction
@@ -201,6 +214,30 @@ The application automatically creates these tables:
 
 ### Health Check
 - `GET /health` - Application and database status
+
+## 🤖 GPT-5 Configuration
+
+### Available Models
+- **GPT-5**: Best for complex reasoning, broad world knowledge, and multi-step tasks
+- **GPT-5 Mini**: Cost-optimized reasoning and chat; balances speed, cost, and capability
+- **GPT-5 Nano**: High-throughput tasks, especially simple instruction-following or classification
+
+### Reasoning Effort Levels
+- **Minimal**: Fastest responses, minimal reasoning tokens
+- **Low**: Fast responses with basic reasoning
+- **Medium**: Balanced reasoning and speed (default)
+- **High**: Thorough reasoning, slower but more thoughtful responses
+
+### Verbosity Levels
+- **Low**: Concise, brief responses
+- **Medium**: Balanced detail and brevity (default)
+- **High**: Detailed, thorough responses
+
+### Configuration Options
+- **Per Exercise Set**: Each exercise set can have unique AI behavior settings
+- **Admin Dashboard**: Easy-to-use interface for managing all AI parameters
+- **Real-time Updates**: Changes take effect immediately for new chat interactions
+- **Backward Compatibility**: Existing exercise sets automatically get sensible defaults
 
 ## 🔐 Security Features
 
@@ -329,10 +366,28 @@ git push origin main
 - [ ] Exercise templates and libraries
 - [ ] Analytics and progress tracking
 - [ ] Advanced AI prompts for different grade levels
-- [ ] Mathematical expression rendering (MathJax)
-- [ ] Multi-language support
+- [x] Mathematical expression rendering (MathJax) - ✅ Implemented
+- [x] Multi-language support - ✅ Implemented
+- [x] GPT-5 integration with Responses API - ✅ Implemented
+- [x] Configurable AI reasoning and verbosity - ✅ Implemented
 - [ ] Real-time collaboration
 - [ ] Mobile app
+
+## 🚀 Recent Updates (GPT-5 Migration)
+
+### What's New in GPT-5 Version
+- **Upgraded to GPT-5**: Complete migration from GPT-3.5/4 to GPT-5 models
+- **Responses API**: Switched from Chat Completions to the new Responses API for better performance
+- **Configurable Intelligence**: Per-exercise-set reasoning effort and verbosity controls
+- **Enhanced Admin Interface**: New dashboard controls for managing AI behavior
+- **Improved Mathematical Support**: Better LaTeX rendering in PDFs and chat
+- **Backward Compatibility**: Existing exercise sets automatically migrated with sensible defaults
+
+### Migration Notes
+- All existing exercise sets will continue to work without any changes
+- New exercise sets default to GPT-5 with medium reasoning effort and verbosity
+- Admin can configure AI behavior on a per-exercise-set basis
+- GPT-3.5 and GPT-4 models are no longer supported (automatically upgraded to GPT-5)
 
 ## 📄 License
 
