@@ -33,7 +33,7 @@ let systemSettings = {
 - Help students understand concepts and problem-solving approaches
 - Ask clarifying questions when needed
 - Keep responses concise and age-appropriate
-- If the student asks for the direct answer, guide them to think through it step by step instead
+- If the student asks for the direct answer, guide them to think through it step by step instead. Start with the first step, and only move on when the student mastered the first step.
 
 IMPORTANT: When discussing mathematical expressions, formulas, or symbols:
 - Use proper mathematical notation and LaTeX formatting when appropriate
@@ -42,7 +42,7 @@ IMPORTANT: When discussing mathematical expressions, formulas, or symbols:
 - Use proper mathematical symbols: π, ∑, ∫, √, ±, ≤, ≥, ≠, ∞, etc.
 - When explaining mathematical concepts, be precise with notation and terminology
 
-Respond naturally and helpfully to the student's question.`
+Respond naturally and helpfully to the student's question. The chat users are 13 years old. Answer accordingly. Also keep responses super short. Only one sentence, max two if really neccessary.`
 };
 
 // Middleware
@@ -156,6 +156,7 @@ app.post('/api/chat', async (req, res) => {
     try {
         const { message, chatHistory, exerciseSetId } = req.body;
         
+        console.log('=== CHAT API DEBUG START ===');
         console.log('Chat API received:');
         console.log('Message:', message);
         console.log('Chat history length:', chatHistory ? chatHistory.length : 0);
@@ -188,6 +189,22 @@ app.post('/api/chat', async (req, res) => {
         // Add language instruction to the chat instruction
         const languageInstruction = `Respond in the following language: ${chatLanguage}, unless prompted by the chat otherwise.`;
         chatInstruction = `${languageInstruction}\n\n${chatInstruction}`;
+
+        console.log('=== CHAT CONFIGURATION ===');
+        console.log('Selected LLM Model:', chatModel);
+        console.log('Chat Language:', chatLanguage);
+        console.log('Full System Instruction:');
+        console.log(chatInstruction);
+        console.log('=== FULL CHAT HISTORY ===');
+        if (chatHistory && chatHistory.length > 0) {
+            chatHistory.forEach((msg, index) => {
+                console.log(`History[${index}] (${msg.role}):`, msg.content);
+            });
+        } else {
+            console.log('No chat history provided');
+        }
+        console.log('Current message (user):', message);
+        console.log('=== END CHAT API DEBUG ===');
 
         const response = await generateChatResponse(message, chatHistory, chatModel, chatInstruction);
         res.json({ response });
@@ -512,12 +529,20 @@ Make sure the new exercises fit well with the existing ones and maintain the sam
 
 async function generateChatResponse(message, chatHistory, chatModel = systemSettings.llmModel, chatInstruction = systemSettings.defaultChatInstruction) {
     try {
+        console.log('=== GENERATE CHAT RESPONSE DEBUG START ===');
+        console.log('LLM Model being used:', chatModel);
+        
         // Check if this is a GPT-5 model that requires the Responses API
         const isGPT5Model = chatModel.startsWith('gpt-5');
         
         if (isGPT5Model) {
             // Use Responses API for GPT-5 models
             const input = `${chatInstruction}\n\n${message}`;
+            
+            console.log('=== GPT-5 RESPONSES API ===');
+            console.log('Full input being sent to GPT-5:');
+            console.log(input);
+            console.log('=== END GPT-5 DEBUG ===');
             
             const response = await openai.responses.create({
                 model: chatModel,
@@ -527,7 +552,10 @@ async function generateChatResponse(message, chatHistory, chatModel = systemSett
                 max_output_tokens: 300
             });
 
-            return response.output_text.trim();
+            const responseText = response.output_text.trim();
+            console.log('GPT-5 Response received:', responseText);
+            console.log('=== END GENERATE CHAT RESPONSE DEBUG ===');
+            return responseText;
         } else {
             // Use Chat Completions API for older models
             const messages = [
@@ -548,6 +576,17 @@ async function generateChatResponse(message, chatHistory, chatModel = systemSett
                 content: message
             });
 
+            console.log('=== CHAT COMPLETIONS API ===');
+            console.log('Full messages array being sent to OpenAI:');
+            messages.forEach((msg, index) => {
+                console.log(`Message[${index}] (${msg.role}):`, msg.content);
+            });
+            console.log('API Parameters:');
+            console.log('- Model:', chatModel);
+            console.log('- Max tokens: 300');
+            console.log('- Temperature: 0.7');
+            console.log('=== END CHAT COMPLETIONS DEBUG ===');
+
             const completion = await openai.chat.completions.create({
                 model: chatModel,
                 messages: messages,
@@ -555,7 +594,10 @@ async function generateChatResponse(message, chatHistory, chatModel = systemSett
                 temperature: 0.7
             });
 
-            return completion.choices[0].message.content.trim();
+            const response = completion.choices[0].message.content.trim();
+            console.log('OpenAI Response received:', response);
+            console.log('=== END GENERATE CHAT RESPONSE DEBUG ===');
+            return response;
         }
     } catch (error) {
         console.error('OpenAI API error for chat:', error);
