@@ -28,16 +28,13 @@
                 <h2>System Settings</h2>
                 <div class="settings-container">
                     <div class="form-group">
-                        <label for="llmModel">Teacher Generation Model</label>
+                        <label for="llmModel">Default AI Model</label>
                         <select id="llmModel" class="form-select">
-                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                            <option value="gpt-4">GPT-4</option>
-                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                            <option value="gpt-5">GPT-5</option>
-                            <option value="gpt-5-mini">GPT-5 Mini</option>
-                            <option value="gpt-5-nano">GPT-5 Nano</option>
-                            <option value="gpt-5-chat-latest">GPT-5 Chat Latest</option>
+                            <option value="gpt-5">GPT-5 (Best for complex reasoning)</option>
+                            <option value="gpt-5-mini">GPT-5 Mini (Balanced performance)</option>
+                            <option value="gpt-5-nano">GPT-5 Nano (Fastest responses)</option>
                         </select>
+                        <small class="form-help">Only GPT-5 models are supported. GPT-3.5 and GPT-4 are no longer available.</small>
                     </div>
                     <div class="form-group">
                         <label for="defaultChatInstruction">Default Chat Instruction</label>
@@ -60,13 +57,15 @@
                                 <th>Created</th>
                                 <th>Last Used</th>
                                 <th>Chat Model</th>
+                                <th>Reasoning Effort</th>
+                                <th>Verbosity</th>
                                 <th>Chat Instruction</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="exerciseSetsTable">
                             <tr>
-                                <td colspan="8" class="loading-row">
+                                <td colspan="10" class="loading-row">
                                     <div class="loading"></div>
                                     Loading exercise sets...
                                 </td>
@@ -95,6 +94,57 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="modalCancel">Cancel</button>
                 <button class="btn btn-primary" id="modalSave">Save Instruction</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reasoning Effort Modal -->
+    <div id="reasoningEffortModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Reasoning Effort</h3>
+                <button class="modal-close" id="reasoningEffortModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="reasoningEffortSelect">Reasoning Effort for this Exercise Set</label>
+                    <select id="reasoningEffortSelect" class="form-select">
+                        <option value="minimal">Minimal - Fastest responses, minimal reasoning</option>
+                        <option value="low">Low - Fast responses, basic reasoning</option>
+                        <option value="medium">Medium - Balanced reasoning and speed</option>
+                        <option value="high">High - Thorough reasoning, slower responses</option>
+                    </select>
+                    <small class="form-help">Higher reasoning effort produces more thoughtful responses but takes longer to generate.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="reasoningEffortModalCancel">Cancel</button>
+                <button class="btn btn-primary" id="reasoningEffortModalSave">Save Reasoning Effort</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verbosity Modal -->
+    <div id="verbosityModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Verbosity</h3>
+                <button class="modal-close" id="verbosityModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="verbositySelect">Verbosity for this Exercise Set</label>
+                    <select id="verbositySelect" class="form-select">
+                        <option value="low">Low - Concise, brief responses</option>
+                        <option value="medium">Medium - Balanced detail and brevity</option>
+                        <option value="high">High - Detailed, thorough responses</option>
+                    </select>
+                    <small class="form-help">Higher verbosity produces longer, more detailed responses.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="verbosityModalCancel">Cancel</button>
+                <button class="btn btn-primary" id="verbosityModalSave">Save Verbosity</button>
             </div>
         </div>
     </div>

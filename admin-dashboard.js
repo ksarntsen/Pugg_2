@@ -48,10 +48,48 @@ class AdminDashboard {
             this.saveInstruction();
         });
 
-        // Close modal when clicking outside
+        // Reasoning effort modal listeners
+        document.getElementById('reasoningEffortModalClose').addEventListener('click', () => {
+            this.closeReasoningEffortModal();
+        });
+
+        document.getElementById('reasoningEffortModalCancel').addEventListener('click', () => {
+            this.closeReasoningEffortModal();
+        });
+
+        document.getElementById('reasoningEffortModalSave').addEventListener('click', () => {
+            this.saveReasoningEffort();
+        });
+
+        // Verbosity modal listeners
+        document.getElementById('verbosityModalClose').addEventListener('click', () => {
+            this.closeVerbosityModal();
+        });
+
+        document.getElementById('verbosityModalCancel').addEventListener('click', () => {
+            this.closeVerbosityModal();
+        });
+
+        document.getElementById('verbosityModalSave').addEventListener('click', () => {
+            this.saveVerbosity();
+        });
+
+        // Close modals when clicking outside
         document.getElementById('instructionModal').addEventListener('click', (e) => {
             if (e.target.id === 'instructionModal') {
                 this.closeInstructionModal();
+            }
+        });
+
+        document.getElementById('reasoningEffortModal').addEventListener('click', (e) => {
+            if (e.target.id === 'reasoningEffortModal') {
+                this.closeReasoningEffortModal();
+            }
+        });
+
+        document.getElementById('verbosityModal').addEventListener('click', (e) => {
+            if (e.target.id === 'verbosityModal') {
+                this.closeVerbosityModal();
             }
         });
 
@@ -68,6 +106,18 @@ class AdminDashboard {
             if (e.target.classList.contains('btn-instruction')) {
                 const setId = e.target.dataset.setId;
                 this.editInstruction(setId);
+            }
+
+            // Handle reasoning effort edit buttons
+            if (e.target.classList.contains('btn-reasoning-effort')) {
+                const setId = e.target.dataset.setId;
+                this.editReasoningEffort(setId);
+            }
+
+            // Handle verbosity edit buttons
+            if (e.target.classList.contains('btn-verbosity')) {
+                const setId = e.target.dataset.setId;
+                this.editVerbosity(setId);
             }
             
             // Handle delete buttons
@@ -88,7 +138,7 @@ class AdminDashboard {
 
             if (response.ok) {
                 const settings = await response.json();
-                document.getElementById('llmModel').value = settings.llmModel || 'gpt-3.5-turbo';
+                document.getElementById('llmModel').value = settings.llmModel || 'gpt-5';
                 document.getElementById('defaultChatInstruction').value = settings.defaultChatInstruction || '';
             }
         } catch (error) {
@@ -158,7 +208,7 @@ class AdminDashboard {
         if (this.exerciseSets.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="no-data">No exercise sets found</td>
+                    <td colspan="10" class="no-data">No exercise sets found</td>
                 </tr>
             `;
             return;
@@ -173,14 +223,20 @@ class AdminDashboard {
                 <td>${this.formatDate(set.lastUsed)}</td>
                 <td>
                     <select class="chat-model-select" data-set-id="${set.id}">
-                        <option value="gpt-3.5-turbo" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-3.5-turbo' ? 'selected' : ''}>GPT-3.5</option>
-                        <option value="gpt-4" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-4' ? 'selected' : ''}>GPT-4</option>
-                        <option value="gpt-4-turbo" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-4-turbo' ? 'selected' : ''}>GPT-4 Turbo</option>
-                        <option value="gpt-5" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-5' ? 'selected' : ''}>GPT-5</option>
-                        <option value="gpt-5-mini" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-5-mini' ? 'selected' : ''}>GPT-5 Mini</option>
-                        <option value="gpt-5-nano" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-5-nano' ? 'selected' : ''}>GPT-5 Nano</option>
-                        <option value="gpt-5-chat-latest" ${(set.chatModel || 'gpt-3.5-turbo') === 'gpt-5-chat-latest' ? 'selected' : ''}>GPT-5 Chat Latest</option>
+                        <option value="gpt-5" ${(set.chatModel || 'gpt-5') === 'gpt-5' ? 'selected' : ''}>GPT-5</option>
+                        <option value="gpt-5-mini" ${(set.chatModel || 'gpt-5') === 'gpt-5-mini' ? 'selected' : ''}>GPT-5 Mini</option>
+                        <option value="gpt-5-nano" ${(set.chatModel || 'gpt-5') === 'gpt-5-nano' ? 'selected' : ''}>GPT-5 Nano</option>
                     </select>
+                </td>
+                <td>
+                    <button class="btn-reasoning-effort" data-set-id="${set.id}" title="Edit reasoning effort">
+                        ${this.getReasoningEffortDisplay(set.reasoningEffort || 'medium')}
+                    </button>
+                </td>
+                <td>
+                    <button class="btn-verbosity" data-set-id="${set.id}" title="Edit verbosity">
+                        ${this.getVerbosityDisplay(set.verbosity || 'medium')}
+                    </button>
                 </td>
                 <td>
                     <button class="btn-instruction" data-set-id="${set.id}" title="Edit chat instruction">
@@ -314,6 +370,25 @@ class AdminDashboard {
         }
     }
 
+    getReasoningEffortDisplay(effort) {
+        const displays = {
+            'minimal': '⚡ Minimal',
+            'low': '🔍 Low',
+            'medium': '⚖️ Medium',
+            'high': '🧠 High'
+        };
+        return displays[effort] || '⚖️ Medium';
+    }
+
+    getVerbosityDisplay(verbosity) {
+        const displays = {
+            'low': '📝 Low',
+            'medium': '📄 Medium',
+            'high': '📚 High'
+        };
+        return displays[verbosity] || '📄 Medium';
+    }
+
     formatDate(dateString) {
         if (!dateString) return 'Never';
         const date = new Date(dateString);
@@ -345,6 +420,108 @@ class AdminDashboard {
         setTimeout(() => {
             messageDiv.remove();
         }, 3000);
+    }
+
+    // Reasoning Effort Modal Methods
+    async editReasoningEffort(setId) {
+        const exerciseSet = this.exerciseSets.find(set => set.id === setId);
+        this.currentEditingSetId = setId;
+        
+        const modal = document.getElementById('reasoningEffortModal');
+        const select = document.getElementById('reasoningEffortSelect');
+        
+        select.value = exerciseSet.reasoningEffort || 'medium';
+        modal.style.display = 'flex';
+    }
+
+    closeReasoningEffortModal() {
+        const modal = document.getElementById('reasoningEffortModal');
+        modal.style.display = 'none';
+        this.currentEditingSetId = null;
+    }
+
+    async saveReasoningEffort() {
+        if (!this.currentEditingSetId) return;
+        
+        const reasoningEffort = document.getElementById('reasoningEffortSelect').value;
+        
+        try {
+            const response = await fetch(`/api/admin/exercise-sets/${this.currentEditingSetId}/reasoning-effort`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ reasoningEffort })
+            });
+
+            if (response.ok) {
+                // Update the local data
+                const exerciseSet = this.exerciseSets.find(set => set.id === this.currentEditingSetId);
+                if (exerciseSet) {
+                    exerciseSet.reasoningEffort = reasoningEffort;
+                }
+                this.showSuccessMessage('Reasoning effort updated successfully!');
+                this.closeReasoningEffortModal();
+                this.renderExerciseSets(); // Re-render to update the display
+            } else {
+                this.showErrorMessage('Failed to update reasoning effort');
+            }
+        } catch (error) {
+            console.error('Error updating reasoning effort:', error);
+            this.showErrorMessage('Network error. Please try again.');
+        }
+    }
+
+    // Verbosity Modal Methods
+    async editVerbosity(setId) {
+        const exerciseSet = this.exerciseSets.find(set => set.id === setId);
+        this.currentEditingSetId = setId;
+        
+        const modal = document.getElementById('verbosityModal');
+        const select = document.getElementById('verbositySelect');
+        
+        select.value = exerciseSet.verbosity || 'medium';
+        modal.style.display = 'flex';
+    }
+
+    closeVerbosityModal() {
+        const modal = document.getElementById('verbosityModal');
+        modal.style.display = 'none';
+        this.currentEditingSetId = null;
+    }
+
+    async saveVerbosity() {
+        if (!this.currentEditingSetId) return;
+        
+        const verbosity = document.getElementById('verbositySelect').value;
+        
+        try {
+            const response = await fetch(`/api/admin/exercise-sets/${this.currentEditingSetId}/verbosity`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ verbosity })
+            });
+
+            if (response.ok) {
+                // Update the local data
+                const exerciseSet = this.exerciseSets.find(set => set.id === this.currentEditingSetId);
+                if (exerciseSet) {
+                    exerciseSet.verbosity = verbosity;
+                }
+                this.showSuccessMessage('Verbosity updated successfully!');
+                this.closeVerbosityModal();
+                this.renderExerciseSets(); // Re-render to update the display
+            } else {
+                this.showErrorMessage('Failed to update verbosity');
+            }
+        } catch (error) {
+            console.error('Error updating verbosity:', error);
+            this.showErrorMessage('Network error. Please try again.');
+        }
     }
 }
 

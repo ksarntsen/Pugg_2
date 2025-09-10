@@ -97,6 +97,9 @@ app.post('/api/generate-exercises', async (req, res) => {
             title,
             exercises,
             chatLanguage: 'English', // Default language
+            chatModel: 'gpt-5', // Default to GPT-5
+            reasoningEffort: 'medium', // Default reasoning effort
+            verbosity: 'medium', // Default verbosity
             createdBy: userIP,
             createdAt: new Date().toISOString(),
             lastUsed: new Date().toISOString()
@@ -163,6 +166,8 @@ app.post('/api/chat', async (req, res) => {
         let chatModel = systemSettings.llm_model; // Default to system setting
         let chatInstruction = systemSettings.default_chat_instruction; // Default instruction
         let chatLanguage = 'English'; // Default language
+        let reasoningEffort = 'medium'; // Default reasoning effort
+        let verbosity = 'medium'; // Default verbosity
         
         if (exerciseSetId) {
             const exerciseSet = await db.getExerciseSet(exerciseSetId);
@@ -175,6 +180,12 @@ app.post('/api/chat', async (req, res) => {
                 }
                 if (exerciseSet.chat_language) {
                     chatLanguage = exerciseSet.chat_language;
+                }
+                if (exerciseSet.reasoning_effort) {
+                    reasoningEffort = exerciseSet.reasoning_effort;
+                }
+                if (exerciseSet.verbosity) {
+                    verbosity = exerciseSet.verbosity;
                 }
             }
         }
@@ -199,7 +210,7 @@ app.post('/api/chat', async (req, res) => {
         console.log('Current message (user):', message);
         console.log('=== END CHAT API DEBUG ===');
 
-        const response = await generateChatResponse(message, chatHistory, chatModel, chatInstruction);
+        const response = await generateChatResponse(message, chatHistory, chatModel, chatInstruction, reasoningEffort, verbosity);
         res.json({ response });
     } catch (error) {
         console.error('Error generating chat response:', error);
@@ -280,6 +291,11 @@ app.post('/api/admin/settings', verifyAdminToken, async (req, res) => {
         
         const updates = {};
         if (llmModel) {
+            // Only allow GPT-5 models
+            const validModels = ['gpt-5', 'gpt-5-mini', 'gpt-5-nano'];
+            if (!validModels.includes(llmModel)) {
+                return res.status(400).json({ error: 'Only GPT-5 models are supported' });
+            }
             updates.llmModel = llmModel;
         }
         if (defaultChatInstruction !== undefined) {
@@ -371,6 +387,52 @@ app.post('/api/admin/exercise-sets/:id/chat-language', async (req, res) => {
     }
 });
 
+app.post('/api/admin/exercise-sets/:id/reasoning-effort', verifyAdminToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reasoningEffort } = req.body;
+        
+        // Validate reasoning effort value
+        const validEfforts = ['minimal', 'low', 'medium', 'high'];
+        if (!validEfforts.includes(reasoningEffort)) {
+            return res.status(400).json({ error: 'Invalid reasoning effort value' });
+        }
+        
+        const exerciseSet = await db.updateExerciseSet(id, { reasoning_effort: reasoningEffort });
+        if (!exerciseSet) {
+            return res.status(404).json({ error: 'Exercise set not found' });
+        }
+        
+        res.json({ message: 'Reasoning effort updated successfully' });
+    } catch (error) {
+        console.error('Reasoning effort update error:', error);
+        res.status(500).json({ error: 'Failed to update reasoning effort' });
+    }
+});
+
+app.post('/api/admin/exercise-sets/:id/verbosity', verifyAdminToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { verbosity } = req.body;
+        
+        // Validate verbosity value
+        const validVerbosity = ['low', 'medium', 'high'];
+        if (!validVerbosity.includes(verbosity)) {
+            return res.status(400).json({ error: 'Invalid verbosity value' });
+        }
+        
+        const exerciseSet = await db.updateExerciseSet(id, { verbosity: verbosity });
+        if (!exerciseSet) {
+            return res.status(404).json({ error: 'Exercise set not found' });
+        }
+        
+        res.json({ message: 'Verbosity updated successfully' });
+    } catch (error) {
+        console.error('Verbosity update error:', error);
+        res.status(500).json({ error: 'Failed to update verbosity' });
+    }
+});
+
 // Public endpoint for updating chat language (for teachers)
 app.post('/api/exercise-sets/:id/chat-language', async (req, res) => {
     try {
@@ -423,12 +485,7 @@ app.get('/health', async (req, res) => {
 // AI Generation Functions
 async function generateExercisesWithAI(prompt, count) {
     try {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are an educational exercise generator. Create ${count} diverse, engaging exercises based on the teacher's prompt. Each exercise should be clear, age-appropriate, and educational.
+        const input = `You are an educational exercise generator. Create ${count} diverse, engaging exercises based on the teacher's prompt. Each exercise should be clear, age-appropriate, and educational.
 
 IMPORTANT: When creating mathematical exercises:
 - Use proper mathematical notation and symbols (π, ∑, ∫, √, ±, ≤, ≥, ≠, ∞, etc.)
@@ -436,18 +493,19 @@ IMPORTANT: When creating mathematical exercises:
 - For display math, use double dollar signs: $$\\frac{a}{b} = \\frac{c}{d}$$
 - Ensure mathematical symbols render correctly in web browsers
 
-Return only the exercises, one per line, without numbering or additional formatting.`
-                },
-                {
-                    role: "user",
-                    content: `Generate ${count} exercises for: ${prompt}`
-                }
-            ],
-            max_tokens: 1000,
-            temperature: 0.7
+Return only the exercises, one per line, without numbering or additional formatting.
+
+Generate ${count} exercises for: ${prompt}`;
+
+        const completion = await openai.responses.create({
+            model: "gpt-5",
+            input: input,
+            reasoning: { effort: "medium" },
+            text: { verbosity: "medium" },
+            max_output_tokens: 1000
         });
 
-        const exercisesText = completion.choices[0].message.content;
+        const exercisesText = completion.output_text;
         const exercises = exercisesText.split('\n')
             .filter(line => line.trim())
             .map((exercise, index) => ({
@@ -464,23 +522,19 @@ Return only the exercises, one per line, without numbering or additional formatt
 
 async function generateTitleWithAI(prompt) {
     try {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                {
-                    role: "system",
-                    content: "You are an educational content creator. Generate a concise, engaging title for an exercise set based on the teacher's prompt. The title should be 2-6 words and clearly indicate the subject matter. Return only the title, no additional text."
-                },
-                {
-                    role: "user",
-                    content: `Create a title for exercises about: ${prompt}`
-                }
-            ],
-            max_tokens: 50,
-            temperature: 0.5
+        const input = `You are an educational content creator. Generate a concise, engaging title for an exercise set based on the teacher's prompt. The title should be 2-6 words and clearly indicate the subject matter. Return only the title, no additional text.
+
+Create a title for exercises about: ${prompt}`;
+
+        const completion = await openai.responses.create({
+            model: "gpt-5",
+            input: input,
+            reasoning: { effort: "minimal" },
+            text: { verbosity: "low" },
+            max_output_tokens: 50
         });
 
-        return completion.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
+        return completion.output_text.trim().replace(/^["']|["']$/g, '');
     } catch (error) {
         console.error('OpenAI API error for title:', error);
         // Fallback to simple title generation
@@ -493,12 +547,7 @@ async function generateTitleWithAI(prompt) {
 
 async function generateAdditionalExercisesWithAI(prompt, count, existingExercises) {
     try {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are an educational exercise generator. You will be given existing exercises as context and asked to generate ${count} additional exercises that match the same style, difficulty level, and educational approach.
+        const input = `You are an educational exercise generator. You will be given existing exercises as context and asked to generate ${count} additional exercises that match the same style, difficulty level, and educational approach.
 
 IMPORTANT CONTEXT - Here are the existing exercises:
 ${existingExercises}
@@ -516,20 +565,21 @@ IMPORTANT: When creating mathematical exercises:
 - For display math, use double dollar signs: $$\\frac{a}{b} = \\frac{c}{d}$$
 - Ensure mathematical symbols render correctly in web browsers
 
-Return only the new exercises, one per line, without numbering or additional formatting.`
-                },
-                {
-                    role: "user",
-                    content: `Generate ${count} additional exercises based on this request: ${prompt}
+Return only the new exercises, one per line, without numbering or additional formatting.
 
-Make sure the new exercises fit well with the existing ones and maintain the same quality and style.`
-                }
-            ],
-            max_tokens: 1000,
-            temperature: 0.7
+Generate ${count} additional exercises based on this request: ${prompt}
+
+Make sure the new exercises fit well with the existing ones and maintain the same quality and style.`;
+
+        const completion = await openai.responses.create({
+            model: "gpt-5",
+            input: input,
+            reasoning: { effort: "medium" },
+            text: { verbosity: "medium" },
+            max_output_tokens: 1000
         });
 
-        const exercisesText = completion.choices[0].message.content;
+        const exercisesText = completion.output_text;
         const exercises = exercisesText.split('\n')
             .filter(line => line.trim())
             .map((exercise, index) => ({
@@ -544,17 +594,31 @@ Make sure the new exercises fit well with the existing ones and maintain the sam
     }
 }
 
-async function generateChatResponse(message, chatHistory, chatModel = systemSettings.llmModel, chatInstruction = systemSettings.defaultChatInstruction) {
+async function generateChatResponse(message, chatHistory, chatModel, chatInstruction, reasoningEffort = 'medium', verbosity = 'medium') {
     try {
         console.log('=== GENERATE CHAT RESPONSE DEBUG START ===');
         console.log('LLM Model being used:', chatModel);
+        console.log('Reasoning Effort:', reasoningEffort);
+        console.log('Verbosity:', verbosity);
         
         // Check if this is a GPT-5 model that requires the Responses API
         const isGPT5Model = chatModel.startsWith('gpt-5');
         
         if (isGPT5Model) {
             // Use Responses API for GPT-5 models
-            const input = `${chatInstruction}\n\n${message}`;
+            let input = chatInstruction;
+            
+            // Add chat history if provided
+            if (chatHistory && chatHistory.length > 0) {
+                const historyText = chatHistory.map(msg => {
+                    const role = msg.role === 'user' ? 'Student' : 'Assistant';
+                    return `${role}: ${msg.content}`;
+                }).join('\n\n');
+                input += `\n\nPrevious conversation:\n${historyText}`;
+            }
+            
+            // Add the current message
+            input += `\n\nStudent: ${message}`;
             
             console.log('=== GPT-5 RESPONSES API ===');
             console.log('Full input being sent to GPT-5:');
@@ -564,8 +628,8 @@ async function generateChatResponse(message, chatHistory, chatModel = systemSett
             const response = await openai.responses.create({
                 model: chatModel,
                 input: input,
-                reasoning: { effort: "minimal" },
-                text: { verbosity: "medium" },
+                reasoning: { effort: reasoningEffort },
+                text: { verbosity: verbosity },
                 max_output_tokens: 300
             });
 
@@ -574,47 +638,11 @@ async function generateChatResponse(message, chatHistory, chatModel = systemSett
             console.log('=== END GENERATE CHAT RESPONSE DEBUG ===');
             return responseText;
         } else {
-            // Use Chat Completions API for older models
-            const messages = [
-                {
-                    role: "system",
-                    content: chatInstruction
-                }
-            ];
-
-            // Add chat history if provided
-            if (chatHistory && chatHistory.length > 0) {
-                messages.push(...chatHistory);
-            }
-
-            // Add the current message (already formatted with context)
-            messages.push({
-                role: "user",
-                content: message
-            });
-
-            console.log('=== CHAT COMPLETIONS API ===');
-            console.log('Full messages array being sent to OpenAI:');
-            messages.forEach((msg, index) => {
-                console.log(`Message[${index}] (${msg.role}):`, msg.content);
-            });
-            console.log('API Parameters:');
-            console.log('- Model:', chatModel);
-            console.log('- Max tokens: 300');
-            console.log('- Temperature: 0.7');
-            console.log('=== END CHAT COMPLETIONS DEBUG ===');
-
-            const completion = await openai.chat.completions.create({
-                model: chatModel,
-                messages: messages,
-                max_tokens: 300,
-                temperature: 0.7
-            });
-
-            const response = completion.choices[0].message.content.trim();
-            console.log('OpenAI Response received:', response);
-            console.log('=== END GENERATE CHAT RESPONSE DEBUG ===');
-            return response;
+            // For non-GPT-5 models, we should not reach here as we only support GPT-5 now
+            console.log('=== UNSUPPORTED MODEL ===');
+            console.log('Model:', chatModel, 'is not supported. Only GPT-5 models are available.');
+            console.log('=== END UNSUPPORTED MODEL DEBUG ===');
+            return "I'm sorry, this model is no longer supported. Please contact an administrator to update the model settings.";
         }
     } catch (error) {
         console.error('OpenAI API error for chat:', error);

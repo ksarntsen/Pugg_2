@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS exercise_sets (
     chat_language VARCHAR(50) DEFAULT 'English',
     chat_model VARCHAR(100),
     chat_instruction TEXT,
+    reasoning_effort VARCHAR(20) DEFAULT 'medium',
+    verbosity VARCHAR(20) DEFAULT 'medium',
     created_by VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_used TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -16,7 +18,7 @@ CREATE TABLE IF NOT EXISTS exercise_sets (
 
 CREATE TABLE IF NOT EXISTS system_settings (
     id SERIAL PRIMARY KEY,
-    llm_model VARCHAR(100) DEFAULT 'gpt-3.5-turbo',
+    llm_model VARCHAR(100) DEFAULT 'gpt-5',
     default_chat_instruction TEXT NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -31,7 +33,7 @@ CREATE TABLE IF NOT EXISTS admin_users (
 -- Insert default system settings
 INSERT INTO system_settings (llm_model, default_chat_instruction) 
 VALUES (
-    'gpt-3.5-turbo',
+    'gpt-5',
     'You are a helpful AI tutor assistant for students working on exercises. You should:
 - Be encouraging and supportive
 - Provide hints and guidance without giving away the answer
@@ -69,3 +71,25 @@ CREATE TRIGGER update_exercise_set_last_used
     BEFORE UPDATE ON exercise_sets
     FOR EACH ROW
     EXECUTE FUNCTION update_last_used();
+
+-- Migration: Add new GPT-5 columns to existing exercise_sets table
+-- This will be safe to run multiple times due to IF NOT EXISTS
+DO $$
+BEGIN
+    -- Add reasoning_effort column if it doesn't exist
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'exercise_sets' AND column_name = 'reasoning_effort') THEN
+        ALTER TABLE exercise_sets ADD COLUMN reasoning_effort VARCHAR(20) DEFAULT 'medium';
+    END IF;
+    
+    -- Add verbosity column if it doesn't exist
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'exercise_sets' AND column_name = 'verbosity') THEN
+        ALTER TABLE exercise_sets ADD COLUMN verbosity VARCHAR(20) DEFAULT 'medium';
+    END IF;
+    
+    -- Update existing exercise sets to have default values
+    UPDATE exercise_sets 
+    SET reasoning_effort = 'medium', verbosity = 'medium' 
+    WHERE reasoning_effort IS NULL OR verbosity IS NULL;
+END $$;
