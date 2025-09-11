@@ -60,6 +60,10 @@ app.use(express.static(path.join(__dirname)));
 
 // Routes
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+app.get('/teacher', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 

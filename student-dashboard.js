@@ -20,7 +20,7 @@ function checkAuthentication() {
         // Redirect to appropriate page if not a student
         switch (user.userType) {
             case 'teacher':
-                window.location.href = 'index.html';
+                window.location.href = '/teacher';
                 break;
             case 'admin':
                 window.location.href = 'admin.html';

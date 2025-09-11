@@ -75,13 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.href = 'student-dashboard.html';
                         break;
                     case 'teacher':
-                        window.location.href = 'index.html';
+                        window.location.href = '/teacher';
                         break;
                     case 'admin':
                         window.location.href = 'admin.html';
                         break;
                     default:
-                        window.location.href = 'index.html';
+                        window.location.href = '/teacher';
                 }
             }
         }, 1000); // Simulate network delay
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.href = 'student-dashboard.html';
                         break;
                     case 'teacher':
-                        window.location.href = 'index.html';
+                        window.location.href = '/teacher';
                         break;
                     case 'admin':
                         window.location.href = 'admin.html';
