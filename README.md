@@ -33,6 +33,16 @@ A modern web application for teachers to generate and share exercises with stude
 - **Adaptive Verbosity**: Customizable response length (low, medium, high) per exercise set
 - **GPT-5 Powered**: Uses the latest OpenAI GPT-5 models for superior reasoning and understanding
 
+### Authentication System
+- **Login Page**: Beautiful, responsive login interface as the main entry point
+- **User Type Selection**: Three-button toggle for Student/Teacher/Admin roles
+- **Smart Routing**: Automatic redirection based on user type after authentication
+- **Exercise Set Integration**: Students redirected to specific exercises when coming from teacher links
+- **Session Management**: Secure session handling with automatic login state checking
+- **Student Dashboard**: Dedicated interface for students to access assigned exercise sets
+- **Registration Placeholder**: Ready for future user registration implementation
+- **Responsive Design**: Works seamlessly across desktop and mobile devices
+
 ## 🛠 Technology Stack
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
@@ -90,6 +100,37 @@ npm start
 ```
 
 The application will be available at `http://localhost:3000`
+
+## 🔐 Authentication & User Flow
+
+### Login System
+PUGG now features a comprehensive authentication system with the login page as the main entry point:
+
+1. **Main Entry Point**: Visit `http://localhost:3000` → Login page
+2. **User Type Selection**: Choose Student, Teacher, or Admin role
+3. **Authentication**: Enter username and password
+4. **Smart Routing**: Automatic redirection based on user type:
+   - **Students** → Student Dashboard (`student-dashboard.html`)
+   - **Teachers** → Teacher Interface (`/teacher`)
+   - **Admins** → Admin Panel (`admin.html`)
+
+### Route Structure
+- **`/`** → Login page (main entry point)
+- **`/teacher`** → Teacher exercise generator interface
+- **`/student`** → Student exercise interface
+- **`/admin`** → Admin panel
+- **`/login.html`** → Direct access to login page
+- **`/register.html`** → Registration page (placeholder)
+
+### Exercise Set Integration
+- **Teacher Links**: When students click exercise links from teachers, they're redirected to login first
+- **Post-Login Redirect**: After authentication, students are automatically taken to the specific exercise set
+- **Session Management**: Login state is maintained throughout the session
+
+### Student Dashboard
+- **Exercise Sets**: View assigned exercise sets from teachers
+- **Quick Actions**: Switch account or logout functionality
+- **Authentication Check**: Automatic redirect to login if not authenticated
 
 ## 🐳 Docker Configuration
 
@@ -275,15 +316,20 @@ Returns:
 
 ### Project Structure
 ```
-├── index.html              # Teacher page
+├── login.html              # Main entry point - authentication page
+├── register.html           # User registration page (placeholder)
+├── student-dashboard.html  # Student dashboard interface
+├── student-dashboard.js    # Student dashboard logic
+├── login.js                # Authentication logic and routing
+├── index.html              # Teacher page (accessible via /teacher)
 ├── student.html            # Student page with AI chat
 ├── admin.html              # Admin interface
 ├── admin-dashboard.html    # Admin dashboard
-├── styles.css              # Shared styles
+├── styles.css              # Shared styles (includes auth system styles)
 ├── script.js               # Teacher page logic
 ├── student.js              # Student page logic
 ├── admin.js                # Admin page logic
-├── server.js               # Express server with PostgreSQL
+├── server.js               # Express server with PostgreSQL and auth routing
 ├── database/
 │   ├── init.sql           # Database schema
 │   └── db.js              # Database utilities
@@ -362,7 +408,8 @@ git push origin main
 
 ## 🔮 Future Enhancements
 
-- [ ] User authentication and accounts
+- [x] User authentication and accounts - ✅ Implemented
+- [ ] User registration system (login page ready)
 - [ ] Exercise templates and libraries
 - [ ] Analytics and progress tracking
 - [ ] Advanced AI prompts for different grade levels
@@ -373,9 +420,18 @@ git push origin main
 - [ ] Real-time collaboration
 - [ ] Mobile app
 
-## 🚀 Recent Updates (GPT-5 Migration)
+## 🚀 Recent Updates
 
-### What's New in GPT-5 Version
+### Authentication System (Latest)
+- **Login Page**: New main entry point with beautiful, responsive design
+- **User Type Selection**: Three-button toggle for Student/Teacher/Admin roles
+- **Smart Routing**: Automatic redirection based on user type after authentication
+- **Student Dashboard**: Dedicated interface for students to access exercise sets
+- **Exercise Set Integration**: Seamless redirect from teacher links to specific exercises
+- **Session Management**: Secure login state handling throughout the session
+- **Registration Ready**: Placeholder system ready for future user registration
+
+### GPT-5 Migration
 - **Upgraded to GPT-5**: Complete migration from GPT-3.5/4 to GPT-5 models
 - **Responses API**: Switched from Chat Completions to the new Responses API for better performance
 - **Configurable Intelligence**: Per-exercise-set reasoning effort and verbosity controls
@@ -388,6 +444,7 @@ git push origin main
 - New exercise sets default to GPT-5 with medium reasoning effort and verbosity
 - Admin can configure AI behavior on a per-exercise-set basis
 - GPT-3.5 and GPT-4 models are no longer supported (automatically upgraded to GPT-5)
+- **Authentication**: Login page is now the main entry point - all users must authenticate first
 
 ## 📄 License
 
