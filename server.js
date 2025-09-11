@@ -98,7 +98,7 @@ app.post('/api/generate-exercises', async (req, res) => {
             exercises,
             chatLanguage: 'English', // Default language
             chatModel: 'gpt-5', // Default to GPT-5
-            reasoningEffort: 'medium', // Default reasoning effort
+            reasoningEffort: 'minimal', // Default reasoning effort
             verbosity: 'medium', // Default verbosity
             createdBy: userIP,
             createdAt: new Date().toISOString(),
@@ -166,7 +166,7 @@ app.post('/api/chat', async (req, res) => {
         let chatModel = systemSettings.llm_model; // Default to system setting
         let chatInstruction = systemSettings.default_chat_instruction; // Default instruction
         let chatLanguage = 'English'; // Default language
-        let reasoningEffort = 'medium'; // Default reasoning effort
+        let reasoningEffort = 'minimal'; // Default reasoning effort
         let verbosity = 'medium'; // Default verbosity
         
         if (exerciseSetId) {
@@ -182,7 +182,8 @@ app.post('/api/chat', async (req, res) => {
                     chatLanguage = exerciseSet.chat_language;
                 }
                 if (exerciseSet.reasoning_effort) {
-                    reasoningEffort = exerciseSet.reasoning_effort;
+                    // Use minimal effort for better GPT-5 responses
+                    reasoningEffort = exerciseSet.reasoning_effort === 'medium' ? 'minimal' : exerciseSet.reasoning_effort;
                 }
                 if (exerciseSet.verbosity) {
                     verbosity = exerciseSet.verbosity;
@@ -439,6 +440,7 @@ app.post('/api/exercise-sets/:id/chat-language', async (req, res) => {
         const { id } = req.params;
         const { chatLanguage } = req.body;
         
+        
         const exerciseSet = await db.updateExerciseSet(id, { chatLanguage });
         if (!exerciseSet) {
             return res.status(404).json({ error: 'Exercise set not found' });
@@ -500,12 +502,24 @@ Generate ${count} exercises for: ${prompt}`;
         const completion = await openai.responses.create({
             model: "gpt-5",
             input: input,
-            reasoning: { effort: "medium" },
+            reasoning: { effort: "minimal" },
             text: { verbosity: "medium" },
             max_output_tokens: 1000
         });
 
-        const exercisesText = completion.output_text;
+        // Extract text from the response structure
+        let exercisesText = '';
+        if (completion.output && completion.output.length > 1) {
+            const messageOutput = completion.output.find(item => item.type === 'message');
+            if (messageOutput && messageOutput.content && messageOutput.content.length > 0) {
+                exercisesText = messageOutput.content[0].text;
+            }
+        }
+        
+        // Fallback to output_text if it exists (for backward compatibility)
+        if (!exercisesText && completion.output_text) {
+            exercisesText = completion.output_text;
+        }
         const exercises = exercisesText.split('\n')
             .filter(line => line.trim())
             .map((exercise, index) => ({
@@ -534,7 +548,21 @@ Create a title for exercises about: ${prompt}`;
             max_output_tokens: 50
         });
 
-        return completion.output_text.trim().replace(/^["']|["']$/g, '');
+        // Extract text from the response structure
+        let titleText = '';
+        if (completion.output && completion.output.length > 1) {
+            const messageOutput = completion.output.find(item => item.type === 'message');
+            if (messageOutput && messageOutput.content && messageOutput.content.length > 0) {
+                titleText = messageOutput.content[0].text;
+            }
+        }
+        
+        // Fallback to output_text if it exists (for backward compatibility)
+        if (!titleText && completion.output_text) {
+            titleText = completion.output_text;
+        }
+        
+        return titleText.trim().replace(/^["']|["']$/g, '');
     } catch (error) {
         console.error('OpenAI API error for title:', error);
         // Fallback to simple title generation
@@ -574,12 +602,25 @@ Make sure the new exercises fit well with the existing ones and maintain the sam
         const completion = await openai.responses.create({
             model: "gpt-5",
             input: input,
-            reasoning: { effort: "medium" },
+            reasoning: { effort: "minimal" },
             text: { verbosity: "medium" },
             max_output_tokens: 1000
         });
 
-        const exercisesText = completion.output_text;
+        // Extract text from the response structure
+        let exercisesText = '';
+        if (completion.output && completion.output.length > 1) {
+            const messageOutput = completion.output.find(item => item.type === 'message');
+            if (messageOutput && messageOutput.content && messageOutput.content.length > 0) {
+                exercisesText = messageOutput.content[0].text;
+            }
+        }
+        
+        // Fallback to output_text if it exists (for backward compatibility)
+        if (!exercisesText && completion.output_text) {
+            exercisesText = completion.output_text;
+        }
+
         const exercises = exercisesText.split('\n')
             .filter(line => line.trim())
             .map((exercise, index) => ({
@@ -633,10 +674,22 @@ async function generateChatResponse(message, chatHistory, chatModel, chatInstruc
                 max_output_tokens: 300
             });
 
-            const responseText = response.output_text.trim();
+            // Extract text from the response structure
+            // According to GPT-5 docs, the response should have an output_text field
+            let responseText = '';
+            if (response.output_text) {
+                responseText = response.output_text;
+            } else if (response.output && response.output.length > 0) {
+                // Fallback for different response structures
+                const messageOutput = response.output.find(item => item.type === 'message');
+                if (messageOutput && messageOutput.content && messageOutput.content.length > 0) {
+                    responseText = messageOutput.content[0].text;
+                }
+            }
+            
             console.log('GPT-5 Response received:', responseText);
             console.log('=== END GENERATE CHAT RESPONSE DEBUG ===');
-            return responseText;
+            return responseText.trim();
         } else {
             // For non-GPT-5 models, we should not reach here as we only support GPT-5 now
             console.log('=== UNSUPPORTED MODEL ===');
