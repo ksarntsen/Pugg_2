@@ -56,12 +56,12 @@ app.use(helmet({
 app.use(compression());
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
-
-// Routes
+// Routes - defined before static middleware to override static file serving
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
+
+app.use(express.static(path.join(__dirname)));
 
 app.get('/teacher', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
