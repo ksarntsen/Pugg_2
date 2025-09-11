@@ -88,6 +88,14 @@ const db = {
             fields.push(`chat_instruction = $${paramCount++}`);
             values.push(updates.chatInstruction);
         }
+        if (updates.reasoningEffort) {
+            fields.push(`reasoning_effort = $${paramCount++}`);
+            values.push(updates.reasoningEffort);
+        }
+        if (updates.verbosity) {
+            fields.push(`verbosity = $${paramCount++}`);
+            values.push(updates.verbosity);
+        }
 
         if (fields.length === 0) return null;
 

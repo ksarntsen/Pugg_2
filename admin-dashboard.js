@@ -218,19 +218,19 @@ class AdminDashboard {
             <tr>
                 <td>${set.id}</td>
                 <td>${set.title}</td>
-                <td>${set.createdBy}</td>
-                <td>${this.formatDate(set.createdAt)}</td>
-                <td>${this.formatDate(set.lastUsed)}</td>
+                <td>${set.created_by}</td>
+                <td>${this.formatDate(set.created_at)}</td>
+                <td>${this.formatDate(set.last_used)}</td>
                 <td>
                     <select class="chat-model-select" data-set-id="${set.id}">
-                        <option value="gpt-5" ${(set.chatModel || 'gpt-5') === 'gpt-5' ? 'selected' : ''}>GPT-5</option>
-                        <option value="gpt-5-mini" ${(set.chatModel || 'gpt-5') === 'gpt-5-mini' ? 'selected' : ''}>GPT-5 Mini</option>
-                        <option value="gpt-5-nano" ${(set.chatModel || 'gpt-5') === 'gpt-5-nano' ? 'selected' : ''}>GPT-5 Nano</option>
+                        <option value="gpt-5" ${(set.chat_model || 'gpt-5') === 'gpt-5' ? 'selected' : ''}>GPT-5</option>
+                        <option value="gpt-5-mini" ${(set.chat_model || 'gpt-5') === 'gpt-5-mini' ? 'selected' : ''}>GPT-5 Mini</option>
+                        <option value="gpt-5-nano" ${(set.chat_model || 'gpt-5') === 'gpt-5-nano' ? 'selected' : ''}>GPT-5 Nano</option>
                     </select>
                 </td>
                 <td>
                     <button class="btn-reasoning-effort" data-set-id="${set.id}" title="Edit reasoning effort">
-                        ${this.getReasoningEffortDisplay(set.reasoningEffort || 'medium')}
+                        ${this.getReasoningEffortDisplay(set.reasoning_effort || 'medium')}
                     </button>
                 </td>
                 <td>
@@ -240,7 +240,7 @@ class AdminDashboard {
                 </td>
                 <td>
                     <button class="btn-instruction" data-set-id="${set.id}" title="Edit chat instruction">
-                        ${set.chatInstruction ? '✏️ Edit' : '➕ Add'} Instruction
+                        ${set.chat_instruction ? '✏️ Edit' : '➕ Add'} Instruction
                     </button>
                 </td>
                 <td class="actions">
@@ -267,7 +267,7 @@ class AdminDashboard {
                 // Update the local data
                 const exerciseSet = this.exerciseSets.find(set => set.id === setId);
                 if (exerciseSet) {
-                    exerciseSet.chatModel = model;
+                    exerciseSet.chat_model = model;
                 }
                 this.showSuccessMessage('Chat model updated successfully!');
             } else {
@@ -287,7 +287,7 @@ class AdminDashboard {
         const textarea = document.getElementById('instructionText');
         
         // Load the current instruction or default instruction
-        let instruction = exerciseSet.chatInstruction;
+        let instruction = exerciseSet.chat_instruction;
         if (!instruction) {
             // Load default instruction from settings
             try {
@@ -335,7 +335,7 @@ class AdminDashboard {
                 // Update the local data
                 const exerciseSet = this.exerciseSets.find(set => set.id === this.currentEditingSetId);
                 if (exerciseSet) {
-                    exerciseSet.chatInstruction = instruction;
+                    exerciseSet.chat_instruction = instruction;
                 }
                 this.showSuccessMessage('Chat instruction updated successfully!');
                 this.closeInstructionModal();
@@ -430,7 +430,7 @@ class AdminDashboard {
         const modal = document.getElementById('reasoningEffortModal');
         const select = document.getElementById('reasoningEffortSelect');
         
-        select.value = exerciseSet.reasoningEffort || 'medium';
+        select.value = exerciseSet.reasoning_effort || 'medium';
         modal.style.display = 'flex';
     }
 
@@ -459,7 +459,7 @@ class AdminDashboard {
                 // Update the local data
                 const exerciseSet = this.exerciseSets.find(set => set.id === this.currentEditingSetId);
                 if (exerciseSet) {
-                    exerciseSet.reasoningEffort = reasoningEffort;
+                    exerciseSet.reasoning_effort = reasoningEffort;
                 }
                 this.showSuccessMessage('Reasoning effort updated successfully!');
                 this.closeReasoningEffortModal();
