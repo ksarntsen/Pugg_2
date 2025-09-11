@@ -1145,8 +1145,265 @@ header p {
     color: #c53030;
 }
 
+/* Login Page Styles */
+.login-page {
+    background: linear-gradient(135deg, #FFF7DF 0%, #FFE566 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+}
+
+.login-header {
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    max-width: 250px;
+    height: auto;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.login-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2E2E2E;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    font-size: 1.1rem;
+    color: #6B7280;
+}
+
+.login-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+.user-type-toggle {
+    display: flex;
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 2rem;
+    border: 2px solid #e2e8f0;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, #FFC700 0%, #FF9F1A 100%);
+    color: #2E2E2E;
+    box-shadow: 0 2px 4px rgba(255, 199, 0, 0.3);
+}
+
+.toggle-btn:hover:not(.active) {
+    color: #2E2E2E;
+    background: rgba(255, 199, 0, 0.1);
+}
+
+.login-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.login-form .form-group label {
+    display: block;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.login-form .form-group input {
+    width: 100%;
+    padding: 0.875rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+    background: #f7fafc;
+}
+
+.login-form .form-group input:focus {
+    outline: none;
+    border-color: #FFC700;
+    box-shadow: 0 0 0 3px rgba(255, 199, 0, 0.1);
+    background: white;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.signup-link {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.signup-link p {
+    color: #6B7280;
+    font-size: 0.9rem;
+}
+
+.signup-link-text {
+    color: #FFC700;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.signup-link-text:hover {
+    color: #FF9F1A;
+    text-decoration: underline;
+}
+
+.login-card .error-message {
+    margin-top: 1rem;
+    margin-bottom: 0;
+}
+
+.coming-soon {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.coming-soon h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.coming-soon p {
+    color: #6B7280;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.back-to-login {
+    margin-top: 1.5rem;
+}
+
+/* Student Dashboard Styles */
+.dashboard-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.dashboard-card {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid #e2e8f0;
+}
+
+.dashboard-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.dashboard-card p {
+    color: #6B7280;
+    margin-bottom: 1rem;
+}
+
+.exercise-sets-list {
+    margin-top: 1rem;
+}
+
+.no-exercises {
+    color: #a0aec0;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+}
+
+.exercise-set-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+.exercise-set-item h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.exercise-set-item p {
+    color: #6B7280;
+    margin-bottom: 1rem;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.quick-actions .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
 /* Responsive admin styles */
 @media (max-width: 768px) {
+    .login-page {
+        padding: 1rem;
+    }
+    
+    .login-card {
+        padding: 2rem;
+    }
+    
+    .login-logo {
+        max-width: 200px;
+    }
+    
+    .login-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .toggle-btn {
+        padding: 0.625rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
     .login-container {
         padding: 2rem;
         margin: 1rem;

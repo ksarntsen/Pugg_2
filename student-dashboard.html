@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUGG - Student Dashboard</title>
+    <link rel="icon" type="image/png" href="branding_files/logo_P-text.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="student-page">
+        <div class="student-container">
+            <div class="pugg-logo-container">
+                <img src="branding_files/logo_PUGG-text.png" alt="PUGG" class="pugg-logo">
+            </div>
+
+            <div class="exercise-display">
+                <div class="title-section">
+                    <h1>Student Dashboard</h1>
+                    <p>Welcome to your learning space!</p>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="dashboard-card">
+                        <h3>My Exercise Sets</h3>
+                        <p>Access your assigned exercise sets from teachers.</p>
+                        <div id="exerciseSetsList" class="exercise-sets-list">
+                            <p class="no-exercises">No exercise sets assigned yet.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>Quick Actions</h3>
+                        <div class="quick-actions">
+                            <button class="btn btn-primary" onclick="window.location.href='login.html'">Switch Account</button>
+                            <button class="btn btn-outline" onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="student-dashboard.js"></script>
+</body>
+</html>
